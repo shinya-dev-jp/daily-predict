@@ -76,7 +76,18 @@ async function determineResult(prediction: PredictionRow): Promise<"A" | "B"> {
  *
  * Requires CRON_SECRET header for authentication.
  */
+/**
+ * Vercel Cron sends GET requests. Accept both GET and POST.
+ */
+export async function GET(req: NextRequest) {
+  return handleResolve(req);
+}
+
 export async function POST(req: NextRequest) {
+  return handleResolve(req);
+}
+
+async function handleResolve(req: NextRequest) {
   try {
     // ── Verify cron secret ──────────────────────────────────────────────────
     const authHeader = req.headers.get("authorization");

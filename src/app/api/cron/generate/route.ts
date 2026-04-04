@@ -12,7 +12,18 @@ import { supabaseAdmin } from "@/lib/supabase";
 
 const CATEGORIES = ["crypto", "weather", "sports", "tech", "world", "entertainment"] as const;
 
+/**
+ * Vercel Cron sends GET requests. Accept both GET and POST.
+ */
+export async function GET(req: NextRequest) {
+  return handleGenerate(req);
+}
+
 export async function POST(req: NextRequest) {
+  return handleGenerate(req);
+}
+
+async function handleGenerate(req: NextRequest) {
   try {
     // ── Verify cron secret ──────────────────────────────────────────────────
     const authHeader = req.headers.get("authorization");
