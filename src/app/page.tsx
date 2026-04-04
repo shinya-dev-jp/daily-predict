@@ -124,7 +124,7 @@ function DailyPredictApp() {
       {/* Header */}
       <header className="flex items-center justify-between px-5 py-3.5 border-b border-[#EBECEF]">
         <div className="flex items-center gap-2">
-          <div className="h-7 w-7 rounded-lg bg-[#2563EB] flex items-center justify-center">
+          <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-[#1E3A8A] to-[#4338CA] flex items-center justify-center">
             <Target className="h-4 w-4 text-white" />
           </div>
           <span className="font-bold text-[#181818] text-sm tracking-tight">Daily Predict</span>
