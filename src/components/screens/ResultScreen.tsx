@@ -33,7 +33,7 @@ const CATEGORY_ICON: Record<string, React.ComponentType<{ className?: string }>>
 // Bar chart showing vote split
 // ============================================================
 
-function VoteBar({ percentA }: { percentA: number }) {
+function VoteBar({ percentA, labelA = "Yes", labelB = "No" }: { percentA: number; labelA?: string; labelB?: string }) {
   const percentB = 100 - percentA;
   const [animated, setAnimated] = useState(false);
 
@@ -45,15 +45,15 @@ function VoteBar({ percentA }: { percentA: number }) {
   return (
     <div className="flex flex-col gap-2 w-full">
       {/* Bar */}
-      <div className="flex h-3 w-full rounded-full overflow-hidden bg-[#252152]">
+      <div className="flex h-2 w-full rounded-full overflow-hidden">
         <motion.div
-          className="h-full bg-[#00C230] rounded-l-full"
+          className="h-full bg-[#06B6D4] rounded-l-full"
           initial={{ width: "50%" }}
           animate={{ width: animated ? `${percentA}%` : "50%" }}
           transition={{ duration: 0.7, ease: "easeOut", delay: 0.2 }}
         />
         <motion.div
-          className="h-full bg-[#F2280D] rounded-r-full"
+          className="h-full bg-white/20 rounded-r-full"
           initial={{ width: "50%" }}
           animate={{ width: animated ? `${percentB}%` : "50%" }}
           transition={{ duration: 0.7, ease: "easeOut", delay: 0.2 }}
@@ -61,9 +61,9 @@ function VoteBar({ percentA }: { percentA: number }) {
       </div>
 
       {/* Labels */}
-      <div className="flex justify-between text-xs font-semibold">
-        <span className="text-[#00C230]">{percentA}% Yes</span>
-        <span className="text-[#F2280D]">{percentB}% No</span>
+      <div className="flex justify-between text-[11px] font-medium">
+        <span className="text-[#06B6D4]">{percentA}% {labelA}</span>
+        <span className="text-white/40">{percentB}% {labelB}</span>
       </div>
     </div>
   );
@@ -191,8 +191,8 @@ export function ResultScreen({ prediction, userVote, streak = 0 }: ResultScreenP
         <span>{catMeta.label}</span>
       </span>
 
-      {/* Result card */}
-      <div className="bg-[#252152] rounded-3xl p-6 flex flex-col items-center gap-5 shadow-xl">
+      {/* Result card — glassmorphism */}
+      <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 flex flex-col items-center gap-5 shadow-xl">
         {/* Question */}
         <p className="text-[#94A3B8] text-xs font-semibold uppercase tracking-widest self-start">
           {t("result.yesterdays")}

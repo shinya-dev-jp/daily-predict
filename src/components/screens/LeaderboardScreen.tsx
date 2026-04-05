@@ -94,7 +94,7 @@ function LeaderboardRow({ entry, index }: { entry: LeaderboardEntry; index: numb
         }`}
       >
         <Globe
-          className={`h-4 w-4 ${isCurrent ? "text-white" : "text-[#717680]"}`}
+          className={`h-4 w-4 ${isCurrent ? "text-[#06B6D4]" : "text-[#94A3B8]"}`}
         />
       </div>
 
@@ -157,7 +157,7 @@ function CurrentUserCard({ entry }: { entry: LeaderboardEntry }) {
           </div>
           <div>
             <div className="font-semibold text-sm">{entry.display_name}</div>
-            <div className="flex items-center gap-1 text-[11px] text-[#717680] mt-0.5">
+            <div className="flex items-center gap-1 text-[11px] text-[#94A3B8] mt-0.5">
               <Flame className="h-3 w-3" />
               <span>{entry.streak}-day streak</span>
               <span className="mx-1 opacity-40">·</span>
@@ -166,10 +166,10 @@ function CurrentUserCard({ entry }: { entry: LeaderboardEntry }) {
           </div>
         </div>
         <div className="text-right shrink-0">
-          <div className="text-sm font-bold text-[rgb(0,194,48)]">
+          <div className="text-sm font-bold text-[#06B6D4]">
             {entry.accuracy}%
           </div>
-          <div className="text-[11px] text-[#717680]">Top {percentile}%</div>
+          <div className="text-[11px] text-[#94A3B8]">Top {percentile}%</div>
         </div>
       </div>
     </motion.div>
@@ -190,7 +190,7 @@ export function LeaderboardScreen() {
       {/* Title */}
       <div className="flex items-center gap-2 mb-5">
         <Trophy className="h-5 w-5 text-[rgb(255,174,0)]" />
-        <span className="text-[11px] text-[#717680] uppercase tracking-wider font-semibold">
+        <span className="text-[11px] text-[#94A3B8] uppercase tracking-wider font-semibold">
           {t("leaderboard.title")}
         </span>
       </div>
@@ -203,8 +203,8 @@ export function LeaderboardScreen() {
             onClick={() => setPeriod(key)}
             className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-all active:scale-95 ${
               period === key
-                ? "bg-[#181818] text-white"
-                : "bg-[#F3F4F5] text-[#717680]"
+                ? "bg-[#06B6D4] text-white"
+                : "bg-[#252152] text-[#94A3B8]"
             }`}
           >
             {t(labelKey)}
@@ -231,10 +231,10 @@ export function LeaderboardScreen() {
             <Medal
               className={`h-6 w-6 mx-auto mb-1 ${MEDAL_COLOR[entry.rank]}`}
             />
-            <div className="text-[11px] font-bold text-[#3C424B] truncate">
+            <div className="text-[11px] font-bold text-white/90 truncate">
               {entry.display_name}
             </div>
-            <div className="text-[10px] text-[#717680]">
+            <div className="text-[10px] text-[#94A3B8]">
               {entry.accuracy}%
             </div>
           </div>
@@ -242,7 +242,7 @@ export function LeaderboardScreen() {
       </div>
 
       {/* Full list */}
-      <div className="text-[11px] text-[#717680] uppercase tracking-wider font-semibold mb-3">
+      <div className="text-[11px] text-[#94A3B8] uppercase tracking-wider font-semibold mb-3">
         {t("leaderboard.rankings")}
       </div>
       <div className="space-y-1.5">

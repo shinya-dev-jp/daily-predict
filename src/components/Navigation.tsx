@@ -44,7 +44,7 @@ export function Navigation({ activeTab, onTabChange }: NavigationProps) {
               key={key}
               onClick={() => onTabChange(key)}
               className={`flex-1 flex flex-col items-center py-3 gap-0.5 transition-colors active:scale-95 ${
-                isActive ? "text-white" : "text-white/40"
+                isActive ? "text-[#06B6D4]" : "text-white/40"
               }`}
             >
               <Icon
@@ -60,7 +60,7 @@ export function Navigation({ activeTab, onTabChange }: NavigationProps) {
                 {label}
               </span>
               {isActive && (
-                <span className="block w-1 h-1 rounded-full bg-white mt-0.5" />
+                <span className="block w-1 h-1 rounded-full bg-[#06B6D4] mt-0.5" />
               )}
             </button>
           );

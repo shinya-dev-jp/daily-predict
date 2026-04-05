@@ -54,12 +54,12 @@ function BadgeIcon({
 
 // Day cell color
 function dayColor(outcome: DayOutcome | undefined, isToday: boolean, isFuture: boolean): string {
-  if (isFuture) return "bg-[#F9FAFB] text-[#D6D9DD]";
-  if (isToday)  return "ring-2 ring-[#181818] bg-[#F3F4F5] text-[#181818]";
-  if (!outcome) return "bg-white text-[#D6D9DD] border border-[#EBECEF]";
-  if (outcome === "correct") return "bg-[rgb(0,194,48)] text-[#181818]";
-  if (outcome === "wrong")   return "bg-[rgb(255,80,80)] text-[#181818]";
-  return "bg-[#D6D9DD] text-[#181818]"; // missed
+  if (isFuture) return "bg-[#252152] text-white/20";
+  if (isToday)  return "ring-2 ring-[#06B6D4] bg-[#2D2960] text-white";
+  if (!outcome) return "bg-[#1E1B4B] text-white/20 border border-white/10";
+  if (outcome === "correct") return "bg-[rgb(0,194,48)] text-white";
+  if (outcome === "wrong")   return "bg-[rgb(255,80,80)] text-white";
+  return "bg-[#3B366E] text-white/50"; // missed
 }
 
 // ---------------------------------------------------------------------------
@@ -97,21 +97,21 @@ function AccuracyHero() {
 
         {/* Right: stat pills */}
         <div className="flex flex-col gap-2 flex-1 ml-5">
-          <div className="flex items-center justify-between bg-[#EBECEF] rounded-xl px-3 py-2">
+          <div className="flex items-center justify-between bg-white/10 rounded-xl px-3 py-2">
             <div className="flex items-center gap-2">
               <Target className="h-4 w-4 text-white/70" />
               <span className="text-xs text-white/70">{t("profile.predictions")}</span>
             </div>
             <span className="text-sm font-bold">{p.total_predictions}</span>
           </div>
-          <div className="flex items-center justify-between bg-[#EBECEF] rounded-xl px-3 py-2">
+          <div className="flex items-center justify-between bg-white/10 rounded-xl px-3 py-2">
             <div className="flex items-center gap-2">
               <CheckCircle className="h-4 w-4 text-[rgb(0,194,48)]" />
               <span className="text-xs text-white/70">{t("profile.correct")}</span>
             </div>
             <span className="text-sm font-bold">{p.total_correct}</span>
           </div>
-          <div className="flex items-center justify-between bg-[#EBECEF] rounded-xl px-3 py-2">
+          <div className="flex items-center justify-between bg-white/10 rounded-xl px-3 py-2">
             <div className="flex items-center gap-2">
               <Flame className="h-4 w-4 text-[rgb(255,174,0)]" />
               <span className="text-xs text-white/70">{t("profile.streak")}</span>
@@ -137,18 +137,18 @@ function CalendarHeatmap() {
   const today = 31; // March 31, 2026
 
   return (
-    <div className="rounded-2xl bg-[#F9FAFB] p-4 mb-5">
+    <div className="rounded-2xl bg-[#252152] p-4 mb-5">
       <div className="flex items-center justify-between mb-3">
-        <span className="text-[11px] text-[#717680] uppercase tracking-wider font-semibold">
+        <span className="text-[11px] text-[#94A3B8] uppercase tracking-wider font-semibold">
           {t("profile.predictionHistory")}
         </span>
-        <span className="text-[11px] text-[#9BA3AE]">March 2026</span>
+        <span className="text-[11px] text-white/40">March 2026</span>
       </div>
 
       {/* Weekday headers */}
       <div className="grid grid-cols-7 gap-1 text-center mb-1">
         {WEEKDAYS.map((d) => (
-          <span key={d} className="text-[10px] text-[#9BA3AE] font-medium">
+          <span key={d} className="text-[10px] text-white/40 font-medium">
             {d}
           </span>
         ))}
@@ -187,11 +187,11 @@ function CalendarHeatmap() {
         {[
           { color: "bg-[rgb(0,194,48)]", labelKey: "profile.legendCorrect" },
           { color: "bg-[rgb(255,80,80)]", labelKey: "profile.legendWrong" },
-          { color: "bg-[#D6D9DD]", labelKey: "profile.legendMissed" },
+          { color: "bg-[#3B366E]", labelKey: "profile.legendMissed" },
         ].map(({ color, labelKey }) => (
           <span key={labelKey} className="flex items-center gap-1">
             <span className={`inline-block w-2.5 h-2.5 rounded ${color}`} />
-            <span className="text-[10px] text-[#9BA3AE]">{t(labelKey)}</span>
+            <span className="text-[10px] text-white/40">{t(labelKey)}</span>
           </span>
         ))}
       </div>
@@ -206,14 +206,14 @@ function RecentPredictions() {
   const { t } = useI18n();
   return (
     <div className="mb-5">
-      <span className="text-[11px] text-[#717680] uppercase tracking-wider font-semibold block mb-3">
+      <span className="text-[11px] text-[#94A3B8] uppercase tracking-wider font-semibold block mb-3">
         {t("profile.recentPredictions")}
       </span>
       <div className="space-y-2">
         {DEMO_RECENT_PREDICTIONS.map((item) => (
           <div
             key={item.id}
-            className="rounded-xl bg-[#F9FAFB] p-3 flex items-start gap-3"
+            className="rounded-xl bg-[#252152] p-3 flex items-start gap-3"
           >
             {/* Outcome indicator */}
             <div
@@ -234,11 +234,11 @@ function RecentPredictions() {
 
             {/* Content */}
             <div className="flex-1 min-w-0">
-              <div className="text-xs font-medium text-[#3C424B] leading-snug mb-1.5 line-clamp-2">
+              <div className="text-xs font-medium text-white/90 leading-snug mb-1.5 line-clamp-2">
                 {item.question}
               </div>
               <div className="flex items-center gap-3 flex-wrap">
-                <span className="text-[10px] text-[#9BA3AE]">
+                <span className="text-[10px] text-white/40">
                   Your answer:{" "}
                   <span
                     className={`font-semibold ${
@@ -251,7 +251,7 @@ function RecentPredictions() {
                   </span>
                 </span>
                 {!item.is_correct && (
-                  <span className="text-[10px] text-[#9BA3AE]">
+                  <span className="text-[10px] text-white/40">
                     Correct:{" "}
                     <span className="font-semibold text-[rgb(0,194,48)]">
                       {item.correct_choice_label}
@@ -262,7 +262,7 @@ function RecentPredictions() {
             </div>
 
             {/* Date */}
-            <div className="text-[10px] text-[#9BA3AE] shrink-0">{item.date}</div>
+            <div className="text-[10px] text-white/30 shrink-0">{item.date}</div>
           </div>
         ))}
       </div>
@@ -281,7 +281,7 @@ function BadgesSection() {
 
   return (
     <div className="mb-5">
-      <span className="text-[11px] text-[#717680] uppercase tracking-wider font-semibold block mb-3">
+      <span className="text-[11px] text-[#94A3B8] uppercase tracking-wider font-semibold block mb-3">
         {t("profile.badges")}
       </span>
 
@@ -292,7 +292,7 @@ function BadgesSection() {
             <motion.div
               key={badge.id}
               whileHover={{ scale: 1.05 }}
-              className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-[#F9FAFB] min-w-[76px]"
+              className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-[#252152] min-w-[76px]"
             >
               <div className="h-8 w-8 rounded-full bg-[rgb(0,194,48)]/15 flex items-center justify-center">
                 <BadgeIcon
@@ -300,11 +300,11 @@ function BadgesSection() {
                   className="h-4 w-4 text-[rgb(0,194,48)]"
                 />
               </div>
-              <span className="text-[10px] font-semibold text-[#3C424B] text-center leading-tight">
+              <span className="text-[10px] font-semibold text-white/90 text-center leading-tight">
                 {badge.name}
               </span>
               {badge.earned_at && (
-                <span className="text-[9px] text-[#9BA3AE]">
+                <span className="text-[9px] text-white/30">
                   {badge.earned_at.slice(5)}
                 </span>
               )}
@@ -316,22 +316,22 @@ function BadgesSection() {
       {/* Locked */}
       {locked.length > 0 && (
         <>
-          <span className="text-[11px] text-[#9BA3AE] uppercase tracking-wider font-semibold block mb-2">
+          <span className="text-[11px] text-white/30 uppercase tracking-wider font-semibold block mb-2">
             {t("profile.locked")}
           </span>
           <div className="flex gap-2 flex-wrap">
             {locked.map((badge) => (
               <div
                 key={badge.id}
-                className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-[#F9FAFB] min-w-[76px] opacity-45"
+                className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-[#252152] min-w-[76px] opacity-45"
               >
-                <div className="h-8 w-8 rounded-full bg-[#EBECEF] flex items-center justify-center">
-                  <Lock className="h-4 w-4 text-[#9BA3AE]" />
+                <div className="h-8 w-8 rounded-full bg-[#3B366E] flex items-center justify-center">
+                  <Lock className="h-4 w-4 text-white/30" />
                 </div>
-                <span className="text-[10px] font-semibold text-[#9BA3AE] text-center leading-tight">
+                <span className="text-[10px] font-semibold text-white/40 text-center leading-tight">
                   {badge.name}
                 </span>
-                <span className="text-[9px] text-[#D6D9DD] text-center leading-tight">
+                <span className="text-[9px] text-white/20 text-center leading-tight">
                   {badge.requirement}
                 </span>
               </div>
@@ -354,11 +354,11 @@ export function ProfileScreen() {
     <div className="px-6 pt-6 overflow-y-auto h-full pb-24">
       {/* Profile header */}
       <div className="flex items-center gap-3 mb-5">
-        <div className="h-12 w-12 rounded-full bg-[#F3F4F5] flex items-center justify-center shrink-0">
-          <Globe className="h-5 w-5 text-[#717680]" />
+        <div className="h-12 w-12 rounded-full bg-[#252152] flex items-center justify-center shrink-0">
+          <Globe className="h-5 w-5 text-[#94A3B8]" />
         </div>
         <div>
-          <div className="font-semibold text-[#181818]">{p.display_name}</div>
+          <div className="font-semibold text-white">{p.display_name}</div>
           <div className="flex items-center gap-1.5 mt-0.5">
             <CheckCircle className="h-3.5 w-3.5 text-[rgb(0,194,48)]" />
             <span className="text-[11px] text-[rgb(0,194,48)] font-medium">
@@ -366,7 +366,7 @@ export function ProfileScreen() {
             </span>
           </div>
         </div>
-        <div className="ml-auto flex items-center gap-1 text-[#9BA3AE]">
+        <div className="ml-auto flex items-center gap-1 text-[#94A3B8]">
           <span className="text-xs">{p.points.toLocaleString()} {t("profile.pts")}</span>
         </div>
       </div>

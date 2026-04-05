@@ -278,10 +278,21 @@ export function PredictScreen({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.2 }}
-            className="flex flex-col gap-5 px-5 flex-1"
+            className="flex flex-col gap-5 px-5 flex-1 relative"
           >
-            {/* Question card */}
-            <div className="rounded-2xl bg-gradient-to-br from-[#2563EB] to-[#1D4ED8] p-5 flex flex-col gap-3">
+            {/* Radial glow behind card */}
+            <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[400px] h-[400px] bg-[#06B6D4]/5 rounded-full blur-[100px] pointer-events-none" />
+
+            {/* Verified Humans Only pill */}
+            <div className="flex justify-center">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-white/20 text-[10px] font-medium text-white/50 uppercase tracking-wider">
+                <Users className="h-3 w-3" />
+                Verified Humans Only
+              </span>
+            </div>
+
+            {/* Question card — glassmorphism */}
+            <div className="rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 p-5 flex flex-col gap-3 relative z-10">
               <p className="text-white/60 text-[11px] font-medium uppercase tracking-[0.15em]">
                 {t("predict.todaysQuestion")}
               </p>
@@ -293,6 +304,24 @@ export function PredictScreen({
                 <span className="text-white/50 text-xs">
                   <span className="text-white/80 font-medium">{prediction.vote_count.toLocaleString()}</span> {t("predict.predicted")}
                 </span>
+              </div>
+
+              {/* Vote split bar */}
+              <div className="flex flex-col gap-2 mt-2">
+                <div className="flex h-2 w-full rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-[#06B6D4] rounded-l-full transition-all duration-700"
+                    style={{ width: `${prediction.option_a_percent}%` }}
+                  />
+                  <div
+                    className="h-full bg-white/20 rounded-r-full transition-all duration-700"
+                    style={{ width: `${100 - prediction.option_a_percent}%` }}
+                  />
+                </div>
+                <div className="flex justify-between text-[11px] font-medium">
+                  <span className="text-[#06B6D4]">{prediction.option_a_percent}% {prediction.option_a}</span>
+                  <span className="text-white/40">{100 - prediction.option_a_percent}% {prediction.option_b}</span>
+                </div>
               </div>
             </div>
 
