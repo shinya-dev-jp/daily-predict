@@ -34,7 +34,7 @@ function LanguageToggle() {
     <div className="relative">
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium text-[#717680] hover:bg-[#F3F4F5] transition-colors"
+        className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium text-white/60 hover:bg-white/10 transition-colors"
       >
         <Globe className="h-3.5 w-3.5" />
         <span>{current.shortLabel}</span>
@@ -42,7 +42,7 @@ function LanguageToggle() {
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-full mt-1 bg-white rounded-xl shadow-lg border border-[#EBECEF] py-1 z-50 min-w-[120px]">
+          <div className="absolute right-0 top-full mt-1 bg-[#252152] rounded-xl shadow-lg border border-white/10 py-1 z-50 min-w-[120px]">
             {LANGUAGES.map((lang) => (
               <button
                 key={lang.code}
@@ -52,8 +52,8 @@ function LanguageToggle() {
                 }}
                 className={`w-full text-left px-3 py-2 text-sm transition-colors ${
                   lang.code === locale
-                    ? "text-[#2563EB] font-semibold bg-[#2563EB]/5"
-                    : "text-[#3C424B] hover:bg-[#F9FAFB]"
+                    ? "text-[#06B6D4] font-semibold bg-[#06B6D4]/10"
+                    : "text-white/70 hover:bg-white/5"
                 }`}
               >
                 {lang.label}
@@ -71,10 +71,10 @@ function LanguageToggle() {
 // ---------------------------------------------------------------------------
 function AppSkeleton() {
   return (
-    <div className="mx-auto max-w-md min-h-dvh flex flex-col items-center justify-center bg-white gap-4 p-8">
-      <div className="w-16 h-16 rounded-2xl bg-[#F3F4F5] animate-pulse" />
-      <div className="w-48 h-4 rounded bg-[#F3F4F5] animate-pulse" />
-      <div className="w-32 h-3 rounded bg-[#F3F4F5] animate-pulse mt-2" />
+    <div className="mx-auto max-w-md min-h-dvh flex flex-col items-center justify-center bg-[#1E1B4B] gap-4 p-8">
+      <div className="w-16 h-16 rounded-2xl bg-[#252152] animate-pulse" />
+      <div className="w-48 h-4 rounded bg-[#252152] animate-pulse" />
+      <div className="w-32 h-3 rounded bg-[#252152] animate-pulse mt-2" />
     </div>
   );
 }
@@ -85,8 +85,8 @@ function AppSkeleton() {
 function QuestionLoading() {
   return (
     <div className="flex flex-col items-center justify-center gap-4 px-6 py-16 text-center">
-      <Loader2 className="h-8 w-8 text-[#2563EB] animate-spin" />
-      <p className="text-[#9BA3AE] text-sm">Loading today&apos;s question...</p>
+      <Loader2 className="h-8 w-8 text-[#06B6D4] animate-spin" />
+      <p className="text-[#94A3B8] text-sm">Loading today&apos;s question...</p>
     </div>
   );
 }
@@ -120,14 +120,14 @@ function DailyPredictApp() {
   }
 
   return (
-    <div className="mx-auto max-w-md min-h-dvh flex flex-col bg-white">
+    <div className="mx-auto max-w-md min-h-dvh flex flex-col bg-[#1E1B4B]">
       {/* Header */}
-      <header className="flex items-center justify-between px-5 py-3.5 border-b border-[#EBECEF]">
+      <header className="flex items-center justify-between px-5 py-3.5 border-b border-white/10">
         <div className="flex items-center gap-2">
           <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-[#1E3A8A] to-[#4338CA] flex items-center justify-center">
             <Target className="h-4 w-4 text-white" />
           </div>
-          <span className="font-bold text-[#181818] text-sm tracking-tight">Daily Predict</span>
+          <span className="font-bold text-white text-sm tracking-tight">Daily Predict</span>
         </div>
         <div className="flex items-center gap-2">
           <LanguageToggle />

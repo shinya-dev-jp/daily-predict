@@ -93,7 +93,7 @@ function CountdownDisplay({ closesAt }: { closesAt: string }) {
 
   if (expired) {
     return (
-      <div className="flex items-center gap-1.5 text-[#9BA3AE] text-xs">
+      <div className="flex items-center gap-1.5 text-white/40 text-xs">
         <Lock className="h-3.5 w-3.5" />
         <span>{t("predict.votingClosed")}</span>
       </div>
@@ -101,10 +101,10 @@ function CountdownDisplay({ closesAt }: { closesAt: string }) {
   }
 
   return (
-    <div className="flex items-center gap-1.5 text-[#717680] text-xs">
-      <Clock className="h-3.5 w-3.5 text-[#9BA3AE]" />
+    <div className="flex items-center gap-1.5 text-white/50 text-xs">
+      <Clock className="h-3.5 w-3.5 text-white/40" />
       <span>{t("predict.closesIn")}&nbsp;</span>
-      <span className="font-mono font-semibold text-[#3C424B] tabular-nums">
+      <span className="font-mono font-semibold text-white/80 tabular-nums">
         {hours > 0 && <>{pad(hours)}h </>}
         {pad(minutes)}m {pad(seconds)}s
       </span>
@@ -150,8 +150,8 @@ function LockedState({
         transition={{ delay: 0.25 }}
         className="flex flex-col gap-2"
       >
-        <p className="text-[#181818] font-bold text-2xl">{t("locked.title")}</p>
-        <p className="text-[#9BA3AE] text-sm">{t("locked.subtitle")}</p>
+        <p className="text-white font-bold text-2xl">{t("locked.title")}</p>
+        <p className="text-[#94A3B8] text-sm">{t("locked.subtitle")}</p>
       </motion.div>
 
       <motion.div
@@ -176,7 +176,7 @@ function LockedState({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.55 }}
-        className="text-[#9BA3AE] text-xs"
+        className="text-[#94A3B8] text-xs"
       >
         {t("locked.comeBack")}
       </motion.p>
@@ -209,7 +209,7 @@ function VoteButtons({
       <motion.button
         whileTap={{ scale: 0.96 }}
         onClick={() => onVote("B")}
-        className="flex-1 py-4 rounded-xl bg-[#F9FAFB] border border-[#EBECEF] text-[#3C424B] font-bold text-sm active:bg-[#F3F4F5] transition-colors cursor-pointer"
+        className="flex-1 py-4 rounded-xl bg-[#374151] text-white/70 font-bold text-sm active:bg-[#4B5563] transition-colors cursor-pointer"
       >
         {prediction.option_b}
       </motion.button>
@@ -253,7 +253,7 @@ export function PredictScreen({
   }
 
   return (
-    <div className="flex flex-col min-h-full bg-white pb-4">
+    <div className="flex flex-col min-h-full bg-[#1E1B4B] pb-4">
       {/* Top bar: category + countdown + streak */}
       <div className="flex items-center justify-between px-5 pt-5 pb-1">
         <CategoryBadge category={prediction.category} />
@@ -304,7 +304,7 @@ export function PredictScreen({
             />
 
             {/* Fine print */}
-            <p className="text-[#B4B9C1] text-[11px] mt-1">
+            <p className="text-white/30 text-[11px] mt-1">
               <Lock className="inline h-3 w-3 mr-1 -mt-0.5" />
               {t("predict.lockedAfterTapping")}
             </p>

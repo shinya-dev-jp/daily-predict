@@ -39,7 +39,7 @@ function RankCell({ entry }: { entry: LeaderboardEntry }) {
   return (
     <div
       className={`w-8 text-center text-sm font-bold ${
-        entry.is_current_user ? "text-white" : "text-[#717680]"
+        entry.is_current_user ? "text-white" : "text-[#94A3B8]"
       }`}
     >
       #{entry.rank}
@@ -52,14 +52,14 @@ function AccuracyBadge({ accuracy, isCurrentUser }: { accuracy: number; isCurren
     <div className="text-right shrink-0">
       <div
         className={`text-sm font-bold ${
-          isCurrentUser ? "text-white" : "text-[#3C424B]"
+          isCurrentUser ? "text-white" : "text-white/90"
         }`}
       >
         {accuracy}% correct
       </div>
       <div
         className={`text-[11px] ${
-          isCurrentUser ? "text-[#717680]" : "text-[#9BA3AE]"
+          isCurrentUser ? "text-[#94A3B8]" : "text-[#94A3B8]"
         }`}
       >
         {/* total predictions derived from points proxy; shown as stat label */}
@@ -80,8 +80,8 @@ function LeaderboardRow({ entry, index }: { entry: LeaderboardEntry; index: numb
       transition={{ delay: index * 0.02, duration: 0.2 }}
       className={`flex items-center gap-3 p-3 rounded-xl transition-colors ${
         isCurrent
-          ? "bg-[#181818] text-white"
-          : "bg-[#F9FAFB] hover:bg-[#181818]"
+          ? "bg-[#06B6D4]/20 text-white border border-[#06B6D4]/30"
+          : "bg-[#252152] hover:bg-[#2D2960]"
       }`}
     >
       {/* Rank / Medal */}
@@ -90,7 +90,7 @@ function LeaderboardRow({ entry, index }: { entry: LeaderboardEntry; index: numb
       {/* Avatar */}
       <div
         className={`h-8 w-8 rounded-full flex items-center justify-center shrink-0 ${
-          isCurrent ? "bg-[#EBECEF]" : "bg-[#F3F4F5]"
+          isCurrent ? "bg-[#06B6D4]/20" : "bg-[#3B366E]"
         }`}
       >
         <Globe
@@ -103,7 +103,7 @@ function LeaderboardRow({ entry, index }: { entry: LeaderboardEntry; index: numb
         <div className="flex items-center gap-1.5 flex-wrap">
           <span
             className={`text-sm font-semibold truncate ${
-              isCurrent ? "text-white" : "text-[#3C424B]"
+              isCurrent ? "text-white" : "text-white/90"
             }`}
           >
             {entry.display_name}
@@ -117,7 +117,7 @@ function LeaderboardRow({ entry, index }: { entry: LeaderboardEntry; index: numb
         {entry.streak > 0 && (
           <div
             className={`flex items-center gap-1 text-[11px] mt-0.5 ${
-              isCurrent ? "text-[#717680]" : "text-[#9BA3AE]"
+              isCurrent ? "text-[#94A3B8]" : "text-white/40"
             }`}
           >
             <Flame className="h-3 w-3" />
@@ -144,15 +144,15 @@ function CurrentUserCard({ entry }: { entry: LeaderboardEntry }) {
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="rounded-2xl bg-gradient-to-r from-[#181818] to-[#3C424B] p-4 mb-6 text-white"
+      className="rounded-2xl bg-gradient-to-r from-[#252152] to-[#2D2960] border border-[#06B6D4]/20 p-4 mb-6 text-white"
     >
-      <div className="text-[11px] text-[#717680] uppercase tracking-wider font-semibold mb-2">
+      <div className="text-[11px] text-[#06B6D4] uppercase tracking-wider font-semibold mb-2">
         Your Ranking
       </div>
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           {/* Rank badge */}
-          <div className="h-10 w-10 rounded-full bg-[#EBECEF] flex items-center justify-center text-sm font-bold shrink-0">
+          <div className="h-10 w-10 rounded-full bg-[#06B6D4]/20 text-[#06B6D4] flex items-center justify-center text-sm font-bold shrink-0">
             #{entry.rank}
           </div>
           <div>

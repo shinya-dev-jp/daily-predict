@@ -34,7 +34,7 @@ interface NavigationProps {
 export function Navigation({ activeTab, onTabChange }: NavigationProps) {
   const { t } = useI18n();
   return (
-    <nav className="sticky bottom-0 pb-safe border-t border-[#EBECEF] bg-white z-10">
+    <nav className="sticky bottom-0 pb-safe border-t border-white/10 bg-[#1E1B4B] z-10">
       <div className="flex">
         {TABS.map(({ key, labelKey, Icon }) => {
           const label = t(labelKey);
@@ -44,7 +44,7 @@ export function Navigation({ activeTab, onTabChange }: NavigationProps) {
               key={key}
               onClick={() => onTabChange(key)}
               className={`flex-1 flex flex-col items-center py-3 gap-0.5 transition-colors active:scale-95 ${
-                isActive ? "text-[#181818]" : "text-[#9BA3AE]"
+                isActive ? "text-white" : "text-white/40"
               }`}
             >
               <Icon
@@ -60,7 +60,7 @@ export function Navigation({ activeTab, onTabChange }: NavigationProps) {
                 {label}
               </span>
               {isActive && (
-                <span className="block w-1 h-1 rounded-full bg-[#181818] mt-0.5" />
+                <span className="block w-1 h-1 rounded-full bg-white mt-0.5" />
               )}
             </button>
           );

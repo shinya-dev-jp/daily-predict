@@ -45,7 +45,7 @@ function VoteBar({ percentA }: { percentA: number }) {
   return (
     <div className="flex flex-col gap-2 w-full">
       {/* Bar */}
-      <div className="flex h-3 w-full rounded-full overflow-hidden bg-[#EBECEF]">
+      <div className="flex h-3 w-full rounded-full overflow-hidden bg-[#252152]">
         <motion.div
           className="h-full bg-[#00C230] rounded-l-full"
           initial={{ width: "50%" }}
@@ -168,12 +168,12 @@ export function ResultScreen({ prediction, userVote, streak = 0 }: ResultScreenP
   if (!isResolved) {
     return (
       <div className="flex flex-col items-center justify-center gap-6 px-6 py-16 text-center">
-        <div className="h-20 w-20 rounded-full bg-[#EBECEF] flex items-center justify-center">
-          <Trophy className="h-10 w-10 text-[#717680]" />
+        <div className="h-20 w-20 rounded-full bg-[#252152] flex items-center justify-center">
+          <Trophy className="h-10 w-10 text-[#94A3B8]" />
         </div>
         <div className="flex flex-col gap-2">
-          <p className="text-[#181818] font-bold text-xl">{t("result.comingSoon")}</p>
-          <p className="text-[#9BA3AE] text-sm">
+          <p className="text-white font-bold text-xl">{t("result.comingSoon")}</p>
+          <p className="text-[#94A3B8] text-sm">
             {t("result.notResolved")}
           </p>
         </div>
@@ -182,7 +182,7 @@ export function ResultScreen({ prediction, userVote, streak = 0 }: ResultScreenP
   }
 
   return (
-    <div className="flex flex-col gap-5 px-5 pt-5 pb-6 bg-white min-h-full">
+    <div className="flex flex-col gap-5 px-5 pt-5 pb-6 bg-[#1E1B4B] min-h-full">
       {/* Category badge */}
       <span
         className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold self-start ${catMeta.bg} ${catMeta.color}`}
@@ -192,12 +192,12 @@ export function ResultScreen({ prediction, userVote, streak = 0 }: ResultScreenP
       </span>
 
       {/* Result card */}
-      <div className="bg-[#F9FAFB] rounded-3xl p-6 flex flex-col items-center gap-5 shadow-xl">
+      <div className="bg-[#252152] rounded-3xl p-6 flex flex-col items-center gap-5 shadow-xl">
         {/* Question */}
-        <p className="text-[#9BA3AE] text-xs font-semibold uppercase tracking-widest self-start">
+        <p className="text-[#94A3B8] text-xs font-semibold uppercase tracking-widest self-start">
           {t("result.yesterdays")}
         </p>
-        <h2 className="text-[#181818] font-bold text-lg leading-snug self-start">
+        <h2 className="text-white font-bold text-lg leading-snug self-start">
           {prediction.question_en}
         </h2>
 
@@ -220,14 +220,14 @@ export function ResultScreen({ prediction, userVote, streak = 0 }: ResultScreenP
                   : t("result.notQuite")
                 : t("result.resultIsIn")}
             </p>
-            <p className="text-[#9BA3AE] text-sm">
-              Answer: <span className="text-[#3C424B] font-medium">{resultLabel}</span>
+            <p className="text-[#94A3B8] text-sm">
+              Answer: <span className="text-white/80 font-medium">{resultLabel}</span>
             </p>
           </motion.div>
         </div>
 
         {/* Divider */}
-        <div className="h-px bg-[#EBECEF] w-full" />
+        <div className="h-px bg-white/10 w-full" />
 
         {/* Vote split */}
         <AnimatePresence>
@@ -241,20 +241,20 @@ export function ResultScreen({ prediction, userVote, streak = 0 }: ResultScreenP
 
               {/* "X% got it right" line */}
               <div className="flex items-center gap-2 justify-center">
-                <Users className="h-3.5 w-3.5 text-[#B4B9C1]" />
-                <p className="text-[#9BA3AE] text-xs text-center">
+                <Users className="h-3.5 w-3.5 text-[#94A3B8]" />
+                <p className="text-[#94A3B8] text-xs text-center">
                   {didVote ? (
                     isCorrect ? (
                       <>
                         You were in the{" "}
-                        <span className="text-[#181818] font-semibold">
+                        <span className="text-white font-semibold">
                           {correctPercent}%
                         </span>{" "}
                         who got it right
                       </>
                     ) : (
                       <>
-                        <span className="text-[#181818] font-semibold">
+                        <span className="text-white font-semibold">
                           {correctPercent}%
                         </span>{" "}
                         of humans got it right
@@ -262,7 +262,7 @@ export function ResultScreen({ prediction, userVote, streak = 0 }: ResultScreenP
                     )
                   ) : (
                     <>
-                      <span className="text-[#181818] font-semibold">
+                      <span className="text-white font-semibold">
                         {correctPercent}%
                       </span>{" "}
                       of humans got it right
@@ -290,10 +290,10 @@ export function ResultScreen({ prediction, userVote, streak = 0 }: ResultScreenP
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className="flex items-center justify-center gap-2 px-4 py-2 rounded-full bg-[#EBECEF] self-center"
+                  className="flex items-center justify-center gap-2 px-4 py-2 rounded-full bg-[#252152] self-center"
                 >
-                  <TrendingDown className="h-4 w-4 text-[#B4B9C1]" />
-                  <span className="text-xs text-[#B4B9C1]">
+                  <TrendingDown className="h-4 w-4 text-[#94A3B8]" />
+                  <span className="text-xs text-[#94A3B8]">
                     Streak reset — try again today
                   </span>
                 </motion.div>
@@ -306,7 +306,7 @@ export function ResultScreen({ prediction, userVote, streak = 0 }: ResultScreenP
       {/* Vote count */}
       <div className="flex items-center justify-center gap-2">
         <div className="h-2 w-2 rounded-full bg-[#00C230]" />
-        <span className="text-[#B4B9C1] text-xs">
+        <span className="text-[#94A3B8] text-xs">
           {prediction.vote_count.toLocaleString()} humans predicted
         </span>
       </div>
@@ -318,7 +318,7 @@ export function ResultScreen({ prediction, userVote, streak = 0 }: ResultScreenP
         transition={{ delay: 1.1 }}
         whileTap={{ scale: 0.96 }}
         onClick={handleShare}
-        className="flex items-center justify-center gap-2 py-4 rounded-2xl bg-[#F9FAFB] border border-[#EBECEF] text-[#181818] font-semibold text-sm active:bg-[#EBECEF] transition-colors"
+        className="flex items-center justify-center gap-2 py-4 rounded-2xl bg-[#252152] border border-white/10 text-white font-semibold text-sm active:bg-[#2D2960] transition-colors"
       >
         <Share2 className="h-4 w-4 text-white/60" />
         {shareState === "shared" ? t("result.copied") : t("result.share")}
