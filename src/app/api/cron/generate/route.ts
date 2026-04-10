@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
+import { jstStartOfDay, todaysCloseAt, jstDateString } from "@/lib/date-util";
+import { logError } from "@/lib/server-log";
 
 /**
  * POST /api/cron/generate
@@ -37,8 +39,9 @@ async function handleGenerate(req: NextRequest) {
     }
 
     // ── Check if today's question already exists ────────────────────────────
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
+    // "Today" = current JST day. Without this, the cron would create
+    // duplicate questions if it runs across the JST midnight boundary.
+    const todayStart = jstStartOfDay();
 
     const { data: existing } = await supabaseAdmin
       .from("predictions")
@@ -68,7 +71,7 @@ async function handleGenerate(req: NextRequest) {
         .single();
 
       if (insertErr) {
-        console.error("[cron/generate] Insert error:", insertErr);
+        logError("cron/generate", "Insert error", { error: String(insertErr) });
         return NextResponse.json({ error: "Failed to insert prediction" }, { status: 500 });
       }
 
@@ -80,7 +83,7 @@ async function handleGenerate(req: NextRequest) {
 
     // Call Claude API
     const category = CATEGORIES[Math.floor(Math.random() * CATEGORIES.length)];
-    const today = new Date().toISOString().split("T")[0];
+    const today = jstDateString();
 
     const prompt = `Generate a single yes/no prediction question for a daily prediction game. The question should be about the "${category}" category and be verifiable within 24 hours (by tomorrow).
 
@@ -90,10 +93,10 @@ Requirements:
 - The question must be answerable with "Yes" or "No"
 - It should be interesting and engaging
 - It should be about something that will be resolved by tomorrow
-- Provide the question in both English and Japanese
+- Provide the question in English, Japanese, and Spanish
 
 Respond ONLY with valid JSON in this exact format (no markdown, no explanation):
-{"question_en": "Will X happen by tomorrow?", "question_ja": "明日までにXは起こると思う？", "option_a": "Yes", "option_b": "No"}`;
+{"question_en": "Will X happen by tomorrow?", "question_ja": "明日までにXは起こると思う？", "question_es": "¿Sucederá X mañana?", "option_a": "Yes", "option_b": "No"}`;
 
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -110,7 +113,8 @@ Respond ONLY with valid JSON in this exact format (no markdown, no explanation):
     });
 
     if (!response.ok) {
-      console.error("[cron/generate] Claude API error:", response.status, await response.text());
+      const errBody = await response.text();
+      logError("cron/generate", "Claude API error", { status: response.status, body: errBody.slice(0, 500) });
       // Fall back to static question
       const fallback = generateFallbackQuestion();
       const { data: inserted, error: insertErr } = await supabaseAdmin
@@ -136,7 +140,7 @@ Respond ONLY with valid JSON in this exact format (no markdown, no explanation):
     try {
       parsed = JSON.parse(textContent);
     } catch {
-      console.error("[cron/generate] Failed to parse Claude response:", textContent);
+      logError("cron/generate", "Failed to parse Claude response", { error: String(textContent) });
       const fallback = generateFallbackQuestion();
       const { data: inserted, error: insertErr } = await supabaseAdmin
         .from("predictions")
@@ -155,13 +159,9 @@ Respond ONLY with valid JSON in this exact format (no markdown, no explanation):
     }
 
     // ── Insert into database ────────────────────────────────────────────────
-    // closes_at = end of today in JST (23:59 JST = 14:59 UTC)
-    const closesAt = new Date();
-    closesAt.setUTCHours(14, 59, 0, 0); // 23:59 JST
-    if (closesAt < new Date()) {
-      // If already past 23:59 JST today, set to tomorrow
-      closesAt.setDate(closesAt.getDate() + 1);
-    }
+    // closes_at = end of today in JST (23:59 JST). todaysCloseAt() handles
+    // the "already past today's close → tomorrow" rollover safely.
+    const closesAt = todaysCloseAt();
 
     const { data: inserted, error: insertErr } = await supabaseAdmin
       .from("predictions")
@@ -180,7 +180,7 @@ Respond ONLY with valid JSON in this exact format (no markdown, no explanation):
       .single();
 
     if (insertErr) {
-      console.error("[cron/generate] Insert error:", insertErr);
+      logError("cron/generate", "Insert error", { error: String(insertErr) });
       return NextResponse.json({ error: "Failed to insert prediction" }, { status: 500 });
     }
 
@@ -189,7 +189,7 @@ Respond ONLY with valid JSON in this exact format (no markdown, no explanation):
       prediction: inserted,
     });
   } catch (err) {
-    console.error("[cron/generate] Unexpected error:", err);
+    logError("cron/generate", "Unexpected error", { error: String(err) });
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
@@ -201,40 +201,55 @@ Respond ONLY with valid JSON in this exact format (no markdown, no explanation):
  * Generate a fallback question when Claude API is unavailable.
  */
 function generateFallbackQuestion() {
-  const closesAt = new Date();
-  closesAt.setUTCHours(14, 59, 0, 0);
-  if (closesAt < new Date()) {
-    closesAt.setDate(closesAt.getDate() + 1);
-  }
+  const closesAt = todaysCloseAt();
 
   const fallbacks = [
     {
-      question_en: "Will Bitcoin be above $85,000 at tomorrow's close?",
-      question_ja: "ビットコインは明日の終値で8万5千ドルを超えると思う？",
+      question_en: "Will Bitcoin go up tomorrow?",
+      question_ja: "明日、ビットコインの価格は上がると思う？",
+      question_es: "¿Subirá el precio de Bitcoin mañana?",
       category: "crypto",
     },
     {
-      question_en: "Will the S&P 500 close higher today than yesterday?",
-      question_ja: "S&P 500は昨日より高く引けると思う？",
+      question_en: "Will the US stock market go up today?",
+      question_ja: "今日、アメリカの株式市場は上がると思う？",
+      question_es: "¿Subirá la bolsa de EE.UU. hoy?",
       category: "world",
     },
     {
       question_en: "Will it rain in Tokyo tomorrow?",
-      question_ja: "明日、東京で雨が降ると思う？",
+      question_ja: "明日、東京で雨は降ると思う？",
+      question_es: "¿Lloverá en Tokio mañana?",
       category: "weather",
     },
     {
-      question_en: "Will any major tech company announce a new AI product today?",
-      question_ja: "今日、大手テック企業がAIの新製品を発表すると思う？",
+      question_en: "Will a big tech company make AI news today?",
+      question_ja: "今日、大手テック企業からAI関連のニュースが出ると思う？",
+      question_es: "¿Alguna gran empresa tech dará noticias de IA hoy?",
       category: "tech",
+    },
+    {
+      question_en: "Will the Champions League favorite win this week?",
+      question_ja: "今週、チャンピオンズリーグの優勝候補は勝つと思う？",
+      question_es: "¿Ganará el favorito de la Champions League esta semana?",
+      category: "sports",
+    },
+    {
+      question_en: "Will this week's #1 movie stay at the top next week?",
+      question_ja: "今週の映画ランキング1位は、来週も1位をキープすると思う？",
+      question_es: "¿La película #1 de esta semana seguirá en el primer lugar la próxima?",
+      category: "entertainment",
     },
   ];
 
-  const chosen = fallbacks[Math.floor(Math.random() * fallbacks.length)];
+  // Use day of year for deterministic daily rotation
+  const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000);
+  const chosen = fallbacks[dayOfYear % fallbacks.length];
 
   return {
     question_en: chosen.question_en,
     question_ja: chosen.question_ja,
+    question_es: (chosen as Record<string, string>).question_es ?? chosen.question_en,
     option_a: "Yes",
     option_b: "No",
     category: chosen.category,

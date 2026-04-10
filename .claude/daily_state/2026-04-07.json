@@ -1,0 +1,61 @@
+{
+  "date": "2026-04-07",
+  "mode": "setup",
+  "model": "Opus 4.6 1M Medium",
+  "started_at": "2026-04-07T20:00:00+09:00",
+  "ended_at": null,
+  "context_start_pct": 100,
+  "context_end_pct": null,
+  "compact_count": 0,
+  "current_task": {
+    "id": "setup-workflow",
+    "title": "Initialize daily/overnight workflow system",
+    "status": "in_progress",
+    "stream": null,
+    "started_at": "2026-04-07T20:00:00+09:00",
+    "files_touched": [
+      ".claude/backlog.md",
+      ".claude/daily_workflow.md",
+      ".claude/overnight_workflow.md",
+      ".claude/rule_audit.py",
+      ".claude/daily_state/template.json",
+      ".claude/daily_state/2026-04-07.json",
+      "CLAUDE.md"
+    ],
+    "blocked_items": [],
+    "reason": null
+  },
+  "tasks": [
+    {
+      "id": "setup-workflow",
+      "title": "Workflow infra setup",
+      "status": "in_progress",
+      "stream": null
+    }
+  ],
+  "pending_approvals": [],
+  "audit_results": {
+    "last_run": "2026-04-07T20:30:00+09:00",
+    "exit_code": 1,
+    "critical_count": 0,
+    "warning_count": 2,
+    "warnings": [
+      "use_effect_empty_deps in src/components/providers/MiniKitWrapper.tsx:9",
+      "ts_ignore in src/lib/share.ts:92"
+    ]
+  },
+  "stats": {
+    "stream_a_count": 0,
+    "stream_b_count": 0,
+    "stream_c_count": 0,
+    "completed": 0,
+    "partial": 0,
+    "blocked": 0,
+    "skipped": 0
+  },
+  "next_session_resume": {
+    "from_task_id": null,
+    "from_file": null,
+    "notes": "Workflow system初回セットアップ。次回「日次」「夜間」コマンドで起動可能。"
+  }
+}

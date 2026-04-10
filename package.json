@@ -11,6 +11,8 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.80.0",
     "@supabase/supabase-js": "^2.100.0",
+    "@worldcoin/idkit": "^4.0.11",
+    "@worldcoin/idkit-core": "^4.1.0",
     "@worldcoin/mini-apps-ui-kit-react": "^1.6.0",
     "@worldcoin/minikit-js": "^1.11.0",
     "@worldcoin/minikit-react": "^1.9.14",

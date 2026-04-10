@@ -9,10 +9,10 @@ tomorrow.setHours(23, 59, 59, 0);
 
 export const todayPrediction: Prediction = {
   id: "demo-2026-03-31",
-  question_en: "Will Bitcoin be above $90,000 at tomorrow's close?",
-  question_ja: "ビットコインは明日の終値で9万ドルを超えると思う？",
-  option_a: "Yes / 超える",
-  option_b: "No / 超えない",
+  question_en: "Will Bitcoin go up tomorrow?",
+  question_ja: "明日、ビットコインの価格は上がると思う？",
+  option_a: "Yes",
+  option_b: "No",
   category: "crypto",
   status: "open",
   closes_at: tomorrow.toISOString(),
@@ -32,10 +32,10 @@ yesterday.setHours(23, 59, 59, 0);
 
 export const yesterdayPrediction: Prediction = {
   id: "demo-2026-03-30",
-  question_en: "Will the Nikkei 225 close above 35,000 today?",
-  question_ja: "日経225は今日35,000円を超えると思う？",
-  option_a: "Yes / 超える",
-  option_b: "No / 超えない",
+  question_en: "Will the Japanese stock market go up today?",
+  question_ja: "今日、日本の株式市場は上がると思う？",
+  option_a: "Yes",
+  option_b: "No",
   category: "world",
   status: "resolved",
   closes_at: yesterday.toISOString(),

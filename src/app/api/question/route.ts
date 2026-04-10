@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
+import { jstStartOfDayDelta } from "@/lib/date-util";
+import { logError, logWarn } from "@/lib/server-log";
 
 /**
  * GET /api/question
@@ -25,7 +27,7 @@ export async function GET() {
     const { data: todayRow, error: todayErr } = await supabaseAdmin
       .from("predictions")
       .select(
-        "id, question_en, question_ja, option_a, option_b, category, status, closes_at, result, vote_count, option_a_votes, created_at"
+        "id, question_en, question_ja, question_es, option_a, option_b, category, status, closes_at, result, vote_count, option_a_votes, created_at"
       )
       .in("status", ["open", "closed"])
       .gte("closes_at", new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString()) // within last 24 h
@@ -34,7 +36,7 @@ export async function GET() {
       .maybeSingle();
 
     if (todayErr) {
-      console.error("[api/question] Error fetching today's question:", todayErr);
+      logError("api/question", "today fetch failed", { code: todayErr.code });
       return NextResponse.json(
         { error: "Failed to fetch today's question" },
         { status: 500 }
@@ -42,28 +44,25 @@ export async function GET() {
     }
 
     // ── Yesterday's resolved prediction ─────────────────────────────────────
-    const yesterdayStart = new Date(now);
-    yesterdayStart.setDate(yesterdayStart.getDate() - 1);
-    yesterdayStart.setHours(0, 0, 0, 0);
-
-    const yesterdayEnd = new Date(now);
-    yesterdayEnd.setDate(yesterdayEnd.getDate() - 1);
-    yesterdayEnd.setHours(23, 59, 59, 999);
+    // Use JST day boundaries so the question lifecycle aligns with the cron
+    // generator (which schedules closes_at = 23:59 JST).
+    const yesterdayStart = jstStartOfDayDelta(-1, now);
+    const yesterdayEnd = jstStartOfDayDelta(0, now);
 
     const { data: yesterdayRow, error: yesterdayErr } = await supabaseAdmin
       .from("predictions")
       .select(
-        "id, question_en, question_ja, option_a, option_b, category, status, closes_at, result, vote_count, option_a_votes, created_at"
+        "id, question_en, question_ja, question_es, option_a, option_b, category, status, closes_at, result, vote_count, option_a_votes, created_at"
       )
       .eq("status", "resolved")
       .gte("created_at", yesterdayStart.toISOString())
-      .lte("created_at", yesterdayEnd.toISOString())
+      .lt("created_at", yesterdayEnd.toISOString())
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
 
     if (yesterdayErr) {
-      console.warn("[api/question] Error fetching yesterday's question:", yesterdayErr);
+      logWarn("api/question", "yesterday fetch failed", { code: yesterdayErr.code });
       // Non-fatal — return today's question without yesterday's
     }
 
@@ -78,6 +77,7 @@ export async function GET() {
         id: row.id,
         question_en: row.question_en,
         question_ja: row.question_ja,
+        question_es: (row as Record<string, unknown>).question_es ?? null,
         option_a: row.option_a,
         option_b: row.option_b,
         category: row.category,
@@ -90,12 +90,15 @@ export async function GET() {
       };
     };
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       today: toClientPrediction(todayRow),
       yesterday: toClientPrediction(yesterdayRow ?? null),
     });
+    // Cache for 30 seconds to reduce DB hits on page refreshes
+    response.headers.set("Cache-Control", "public, s-maxage=30, stale-while-revalidate=60");
+    return response;
   } catch (err) {
-    console.error("[api/question] Unexpected error:", err);
+    logError("api/question", "unexpected error", { error: err instanceof Error ? err.message : String(err) });
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

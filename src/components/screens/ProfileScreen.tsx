@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Globe,
@@ -13,6 +14,7 @@ import {
   Lock,
   Target,
   ChevronRight,
+  Loader2,
 } from "lucide-react";
 import {
   DEMO_USER_PROFILE,
@@ -20,6 +22,7 @@ import {
   DEMO_RECENT_PREDICTIONS,
   type DayOutcome,
 } from "@/data/demo-profile";
+import { useApp } from "@/components/providers/AppProvider";
 import { useI18n } from "@/i18n";
 
 // ---------------------------------------------------------------------------
@@ -28,8 +31,21 @@ import { useI18n } from "@/i18n";
 
 const WEEKDAYS = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
 
-// March 2026 starts on Sunday → Mon offset = 6
-const MARCH_2026_FIRST_WEEKDAY_OFFSET = 6;
+const MONTH_NAMES = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+
+function getMonthOffset(year: number, month: number): number {
+  // month is 1-indexed. Get day of week of 1st day (0=Sun, 1=Mon...)
+  const d = new Date(year, month - 1, 1).getDay();
+  // Convert to Monday-first: Mon=0, Tue=1, ..., Sun=6
+  return d === 0 ? 6 : d - 1;
+}
+
+function getDaysInMonth(year: number, month: number): number {
+  return new Date(year, month, 0).getDate();
+}
 
 // Map badge icon string → Lucide component
 function BadgeIcon({
@@ -65,16 +81,16 @@ function dayColor(outcome: DayOutcome | undefined, isToday: boolean, isFuture: b
 // ---------------------------------------------------------------------------
 // Accuracy Hero Card
 // ---------------------------------------------------------------------------
-function AccuracyHero() {
+function AccuracyHero({ profile }: { profile: typeof DEMO_USER_PROFILE }) {
   const { t } = useI18n();
-  const p = DEMO_USER_PROFILE;
+  const p = profile;
   const ringProgress = `${p.accuracy}%`;
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="rounded-2xl bg-gradient-to-br from-[#1e3a5f] to-[#2563eb] p-5 mb-5 text-white"
+      className="rounded-2xl bg-gradient-to-br from-[#1e3a5f]/80 to-[#2563eb]/60 backdrop-blur-sm border border-white/[0.1] p-5 mb-5 text-white shadow-xl shadow-[#2563eb]/10"
     >
       <div className="flex items-center justify-between">
         {/* Left: accuracy ring placeholder */}
@@ -130,11 +146,19 @@ function AccuracyHero() {
 }
 
 // ---------------------------------------------------------------------------
-// Calendar Heatmap
+// Calendar Heatmap (dynamic)
 // ---------------------------------------------------------------------------
-function CalendarHeatmap() {
+function CalendarHeatmap({ year, month, calendarData }: {
+  year: number;
+  month: number; // 1-indexed
+  calendarData: Record<number, DayOutcome>;
+}) {
   const { t } = useI18n();
-  const today = 31; // March 31, 2026
+  const now = new Date();
+  const todayDay = now.getFullYear() === year && now.getMonth() + 1 === month ? now.getDate() : -1;
+  const offset = getMonthOffset(year, month);
+  const daysInMonth = getDaysInMonth(year, month);
+  const monthLabel = `${MONTH_NAMES[month - 1]} ${year}`;
 
   return (
     <div className="rounded-2xl bg-[#252152] p-4 mb-5">
@@ -142,39 +166,29 @@ function CalendarHeatmap() {
         <span className="text-[11px] text-[#94A3B8] uppercase tracking-wider font-semibold">
           {t("profile.predictionHistory")}
         </span>
-        <span className="text-[11px] text-white/40">March 2026</span>
+        <span className="text-[11px] text-white/40">{monthLabel}</span>
       </div>
 
-      {/* Weekday headers */}
       <div className="grid grid-cols-7 gap-1 text-center mb-1">
         {WEEKDAYS.map((d) => (
-          <span key={d} className="text-[10px] text-white/40 font-medium">
-            {d}
-          </span>
+          <span key={d} className="text-[10px] text-white/40 font-medium">{d}</span>
         ))}
       </div>
 
-      {/* Day cells */}
       <div className="grid grid-cols-7 gap-1">
-        {/* Empty offset cells */}
-        {Array.from({ length: MARCH_2026_FIRST_WEEKDAY_OFFSET }, (_, i) => (
+        {Array.from({ length: offset }, (_, i) => (
           <div key={`e-${i}`} className="h-7" />
         ))}
-
-        {Array.from({ length: 31 }, (_, i) => {
+        {Array.from({ length: daysInMonth }, (_, i) => {
           const day = i + 1;
-          const isFuture = day > today;
-          const isToday = day === today;
-          const outcome = DEMO_CALENDAR[day] as DayOutcome | undefined;
+          const isFuture = day > todayDay && todayDay > 0;
+          const isToday = day === todayDay;
+          const outcome = calendarData[day] as DayOutcome | undefined;
 
           return (
             <div
               key={day}
-              className={`h-7 rounded-lg flex items-center justify-center text-[10px] font-semibold transition-all ${dayColor(
-                outcome,
-                isToday,
-                isFuture
-              )}`}
+              className={`h-7 rounded-lg flex items-center justify-center text-[10px] font-semibold transition-all ${dayColor(outcome, isToday, isFuture)}`}
             >
               {day}
             </div>
@@ -182,7 +196,6 @@ function CalendarHeatmap() {
         })}
       </div>
 
-      {/* Legend */}
       <div className="flex items-center gap-4 mt-3 flex-wrap">
         {[
           { color: "bg-[rgb(0,194,48)]", labelKey: "profile.legendCorrect" },
@@ -202,15 +215,20 @@ function CalendarHeatmap() {
 // ---------------------------------------------------------------------------
 // Recent Predictions List
 // ---------------------------------------------------------------------------
-function RecentPredictions() {
+function RecentPredictions({
+  items,
+}: {
+  items: typeof DEMO_RECENT_PREDICTIONS;
+}) {
   const { t } = useI18n();
+  if (!items || items.length === 0) return null;
   return (
     <div className="mb-5">
       <span className="text-[11px] text-[#94A3B8] uppercase tracking-wider font-semibold block mb-3">
         {t("profile.recentPredictions")}
       </span>
       <div className="space-y-2">
-        {DEMO_RECENT_PREDICTIONS.map((item) => (
+        {items.map((item) => (
           <div
             key={item.id}
             className="rounded-xl bg-[#252152] p-3 flex items-start gap-3"
@@ -273,9 +291,13 @@ function RecentPredictions() {
 // ---------------------------------------------------------------------------
 // Badges Section
 // ---------------------------------------------------------------------------
-function BadgesSection() {
+function BadgesSection({
+  badges,
+}: {
+  badges: typeof DEMO_USER_PROFILE.badges;
+}) {
   const { t } = useI18n();
-  const badges = DEMO_USER_PROFILE.badges;
+  if (!badges || badges.length === 0) return null;
   const earned = badges.filter((b) => b.earned_at !== null);
   const locked = badges.filter((b) => b.earned_at === null);
 
@@ -344,11 +366,96 @@ function BadgesSection() {
 }
 
 // ---------------------------------------------------------------------------
+// Loading skeleton — shown while authenticated user's profile is being fetched
+// to prevent demo-data flicker
+// ---------------------------------------------------------------------------
+function ProfileSkeleton() {
+  return (
+    <div className="px-6 pt-6 overflow-y-auto h-full pb-24" aria-busy="true" aria-label="Loading profile">
+      {/* Header skeleton */}
+      <div className="flex items-center gap-3 mb-5">
+        <div className="h-12 w-12 rounded-full bg-[#252152] animate-pulse" />
+        <div className="flex flex-col gap-2">
+          <div className="h-4 w-24 bg-[#252152] rounded animate-pulse" />
+          <div className="h-3 w-20 bg-[#252152] rounded animate-pulse" />
+        </div>
+      </div>
+      {/* Hero card skeleton */}
+      <div className="rounded-2xl bg-[#252152] h-32 mb-5 animate-pulse" />
+      {/* Calendar skeleton */}
+      <div className="rounded-2xl bg-[#252152] h-48 mb-5 animate-pulse" />
+      {/* Badges skeleton */}
+      <div className="grid grid-cols-3 gap-3 mb-5">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="rounded-xl bg-[#252152] h-20 animate-pulse" />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Main screen
 // ---------------------------------------------------------------------------
 export function ProfileScreen() {
   const { t } = useI18n();
-  const p = DEMO_USER_PROFILE;
+  const { walletAddress, authToken } = useApp();
+  const [profileData, setProfileData] = useState<{
+    profile: typeof DEMO_USER_PROFILE;
+    calendar: { year: number; month: number; data: Record<number, DayOutcome> };
+    recentPredictions: typeof DEMO_RECENT_PREDICTIONS;
+  } | null>(null);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+
+  useEffect(() => {
+    if (!walletAddress || !authToken) {
+      setIsLoadingProfile(false);
+      return;
+    }
+    let cancelled = false;
+    setIsLoadingProfile(true);
+
+    async function fetchProfile() {
+      try {
+        const res = await fetch(`/api/profile`, {
+          headers: { authorization: `Bearer ${authToken}` },
+        });
+        if (!res.ok) {
+          if (!cancelled) setIsLoadingProfile(false);
+          return;
+        }
+        const json = await res.json();
+        if (!cancelled) {
+          setProfileData(json);
+          setIsLoadingProfile(false);
+        }
+      } catch {
+        // Fall back to demo data on network error
+        if (!cancelled) setIsLoadingProfile(false);
+      }
+    }
+
+    fetchProfile();
+    return () => { cancelled = true; };
+  }, [walletAddress, authToken]);
+
+  // Show skeleton while authenticated user's data is being fetched (prevents
+  // demo-data flicker before real data arrives)
+  if (walletAddress && isLoadingProfile && !profileData) {
+    return <ProfileSkeleton />;
+  }
+
+  // Authenticated users: only show real API data (no demo placeholders flicker).
+  // Unauthenticated/preview: fall back to demo so the screen isn't blank.
+  const isAuth = !!walletAddress;
+  const p = profileData?.profile ?? (isAuth
+    ? { ...DEMO_USER_PROFILE, display_name: "—", points: 0, total_predictions: 0, total_correct: 0, streak: 0, best_streak: 0, accuracy: 0, badges: [] }
+    : DEMO_USER_PROFILE);
+  const now = new Date();
+  const calYear = profileData?.calendar?.year ?? now.getFullYear();
+  const calMonth = profileData?.calendar?.month ?? (now.getMonth() + 1);
+  const calData = profileData?.calendar?.data ?? (isAuth ? {} : DEMO_CALENDAR);
+  const recentPredictions = profileData?.recentPredictions ?? (isAuth ? [] : DEMO_RECENT_PREDICTIONS);
 
   return (
     <div className="px-6 pt-6 overflow-y-auto h-full pb-24">
@@ -372,16 +479,58 @@ export function ProfileScreen() {
       </div>
 
       {/* Accuracy hero */}
-      <AccuracyHero />
+      <AccuracyHero profile={p} />
 
       {/* Calendar heatmap */}
-      <CalendarHeatmap />
+      <CalendarHeatmap year={calYear} month={calMonth} calendarData={calData} />
 
       {/* Badges */}
-      <BadgesSection />
+      <BadgesSection badges={p.badges} />
+
+      {/* Weekly Login Rewards — Coming Soon teaser */}
+      <div className="mb-5">
+        <div className="rounded-2xl bg-gradient-to-br from-[#06B6D4]/10 to-[#4338CA]/10 border border-[#06B6D4]/20 p-4 backdrop-blur-sm">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[11px] text-[#06B6D4] uppercase tracking-wider font-semibold">
+              {t("rewards.title")}
+            </span>
+            <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-1 rounded-full bg-[#F59E0B]/15 text-[#F59E0B]">
+              {t("rewards.comingSoon")}
+            </span>
+          </div>
+          <p className="text-xs text-white/70 mb-3">{t("rewards.subtitle")}</p>
+          <ul className="space-y-1.5">
+            {[1, 2, 3, 4].map((i) => (
+              <li key={i} className="flex items-start gap-2 text-[11px] text-white/60">
+                <span className="text-[#06B6D4] mt-[1px]">•</span>
+                <span>{t(`rewards.rule${i}`)}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+
+      {/* Points explanation */}
+      <div className="mb-5">
+        <span className="text-[11px] text-[#94A3B8] uppercase tracking-wider font-semibold block mb-3">
+          {t("profile.howPoints")}
+        </span>
+        <div className="rounded-2xl bg-[#252152] p-4 space-y-2.5">
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-white/70">{t("profile.pointsCorrect")}</span>
+            <span className="text-xs font-bold text-[#06B6D4]">+10 pts</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-white/70">{t("profile.pointsStreak")}</span>
+            <span className="text-xs font-bold text-[#F59E0B]">+5 pts / day</span>
+          </div>
+          <div className="h-px bg-white/10" />
+          <p className="text-[10px] text-white/40">{t("profile.pointsExample")}</p>
+        </div>
+      </div>
 
       {/* Recent predictions */}
-      <RecentPredictions />
+      <RecentPredictions items={recentPredictions} />
     </div>
   );
 }

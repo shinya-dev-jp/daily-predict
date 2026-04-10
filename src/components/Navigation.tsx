@@ -1,6 +1,6 @@
 "use client";
 
-import { Target, CheckCircle, Trophy, User } from "lucide-react";
+import { Gem, CheckCircle, Trophy, User } from "lucide-react";
 import { useI18n } from "@/i18n";
 import type { TabKey } from "@/lib/types";
 
@@ -14,7 +14,7 @@ interface TabConfig {
 }
 
 const TABS: TabConfig[] = [
-  { key: "predict",     labelKey: "tabs.predict",  Icon: Target },
+  { key: "predict",     labelKey: "tabs.predict",  Icon: Gem },
   { key: "results",     labelKey: "tabs.results",  Icon: CheckCircle },
   { key: "leaderboard", labelKey: "tabs.ranking",  Icon: Trophy },
   { key: "profile",     labelKey: "tabs.profile",  Icon: User },
@@ -26,15 +26,21 @@ const TABS: TabConfig[] = [
 interface NavigationProps {
   activeTab: TabKey;
   onTabChange: (tab: TabKey) => void;
+  /** Show notification dot on Results tab when yesterday's result is available */
+  hasNewResult?: boolean;
 }
 
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
-export function Navigation({ activeTab, onTabChange }: NavigationProps) {
+export function Navigation({ activeTab, onTabChange, hasNewResult }: NavigationProps) {
   const { t } = useI18n();
   return (
-    <nav className="sticky bottom-0 pb-safe border-t border-white/10 bg-[#1E1B4B] z-10">
+    <nav
+      className="sticky bottom-0 pb-safe border-t border-white/[0.08] bg-[#1E1B4B]/95 backdrop-blur-lg z-10"
+      role="tablist"
+      aria-label="Main navigation"
+    >
       <div className="flex">
         {TABS.map(({ key, labelKey, Icon }) => {
           const label = t(labelKey);
@@ -43,18 +49,30 @@ export function Navigation({ activeTab, onTabChange }: NavigationProps) {
             <button
               key={key}
               onClick={() => onTabChange(key)}
+              role="tab"
+              aria-selected={isActive}
+              aria-label={label}
               className={`flex-1 flex flex-col items-center py-3 gap-0.5 transition-colors active:scale-95 ${
                 isActive ? "text-[#06B6D4]" : "text-white/40"
               }`}
             >
-              <Icon
-                className={`h-5 w-5 transition-all ${
-                  isActive ? "scale-110" : "scale-100"
-                }`}
-              />
+              <div className="relative">
+                <Icon
+                  className={`h-5 w-5 transition-all ${
+                    isActive ? "scale-110" : "scale-100"
+                  }`}
+                  aria-hidden="true"
+                />
+                {key === "results" && hasNewResult && !isActive && (
+                  <span
+                    className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-[#F59E0B] animate-pulse"
+                    aria-label="New result available"
+                  />
+                )}
+              </div>
               <span
-                className={`text-[10px] font-medium ${
-                  isActive ? "font-semibold" : ""
+                className={`text-[10px] transition-colors ${
+                  isActive ? "font-bold" : "font-medium"
                 }`}
               >
                 {label}

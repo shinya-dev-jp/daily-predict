@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
+import { logError } from "@/lib/server-log";
 
 // ── Result resolution helpers ──────────────────────────────────────────────
 
@@ -48,22 +49,23 @@ async function resolveCrypto(prediction: PredictionRow): Promise<"A" | "B" | nul
 /**
  * Determine result based on category. Falls back to majority vote if API unavailable.
  */
-async function determineResult(prediction: PredictionRow): Promise<"A" | "B"> {
+async function determineResult(prediction: PredictionRow): Promise<"A" | "B" | null> {
   // Try category-specific resolution
   if (prediction.category === "crypto") {
     const result = await resolveCrypto(prediction);
     if (result) return result;
   }
 
-  // Fallback: majority vote (if enough votes), otherwise random
-  if (prediction.vote_count >= 5) {
+  // Fallback: majority vote (if enough votes)
+  if (prediction.vote_count >= 10) {
     const optionAPercent = prediction.option_a_votes / prediction.vote_count;
-    // Use majority as proxy for "likely correct answer"
-    return optionAPercent >= 0.5 ? "A" : "B";
+    // Only use majority if there's a clear consensus (60%+)
+    if (optionAPercent >= 0.6) return "A";
+    if (optionAPercent <= 0.4) return "B";
   }
 
-  // Last resort: random (only for non-crypto categories without enough votes)
-  return Math.random() > 0.5 ? "A" : "B";
+  // Cannot determine result objectively — return null to leave unresolved
+  return null;
 }
 
 /**
@@ -112,7 +114,7 @@ async function handleResolve(req: NextRequest) {
       .select("id");
 
     if (closeErr) {
-      console.error("[cron/resolve] Error closing predictions:", closeErr);
+      logError("cron/resolve", "Error closing predictions", { error: String(closeErr) });
     } else if (expiredOpen && expiredOpen.length > 0) {
       results.push(`Closed ${expiredOpen.length} expired prediction(s)`);
     }
@@ -127,7 +129,7 @@ async function handleResolve(req: NextRequest) {
       .limit(10);
 
     if (fetchErr) {
-      console.error("[cron/resolve] Error fetching closed predictions:", fetchErr);
+      logError("cron/resolve", "Error fetching closed predictions", { error: String(fetchErr) });
       return NextResponse.json({ error: "Failed to fetch predictions" }, { status: 500 });
     }
 
@@ -140,6 +142,16 @@ async function handleResolve(req: NextRequest) {
       // Determine result using category-specific APIs with fallbacks
       const result = await determineResult(prediction as PredictionRow);
 
+      if (result === null) {
+        // Cannot determine result — mark as resolved with no winner (refund scenario)
+        await supabaseAdmin
+          .from("predictions")
+          .update({ status: "resolved", result: null })
+          .eq("id", prediction.id);
+        results.push(`Prediction ${prediction.id} resolved as inconclusive (no objective result)`);
+        continue;
+      }
+
       // Update prediction status to resolved
       const { error: resolveErr } = await supabaseAdmin
         .from("predictions")
@@ -147,53 +159,69 @@ async function handleResolve(req: NextRequest) {
         .eq("id", prediction.id);
 
       if (resolveErr) {
-        console.error(`[cron/resolve] Error resolving prediction ${prediction.id}:`, resolveErr);
+        logError("cron/resolve", "error resolving prediction", { id: prediction.id, error: String(resolveErr) });
         results.push(`Failed to resolve prediction ${prediction.id}`);
         continue;
       }
 
-      // ── Step 3: Update user_predictions with is_correct ─────────────────
-      // Mark correct predictions
+      // ── Idempotency guard ────────────────────────────────────────────────
+      // Only operate on user_predictions whose is_correct is still NULL.
+      // If a previous cron run already processed this prediction, those rows
+      // already have is_correct set and we skip them — preventing double
+      // points/streak credit on retry.
+      const { data: pendingVotes, error: pendingErr } = await supabaseAdmin
+        .from("user_predictions")
+        .select("user_address, chosen_option")
+        .eq("prediction_id", prediction.id)
+        .is("is_correct", null);
+
+      if (pendingErr) {
+        logError("cron/resolve", "Error fetching pending votes", { error: String(pendingErr) });
+        results.push(`Failed to fetch pending votes for ${prediction.id}`);
+        continue;
+      }
+
+      if (!pendingVotes || pendingVotes.length === 0) {
+        results.push(`Prediction ${prediction.id} already processed (no pending votes)`);
+        continue;
+      }
+
+      // ── Step 3: Mark is_correct on the pending rows only ─────────────────
       const { error: correctErr } = await supabaseAdmin
         .from("user_predictions")
         .update({ is_correct: true })
         .eq("prediction_id", prediction.id)
-        .eq("chosen_option", result);
+        .eq("chosen_option", result)
+        .is("is_correct", null);
 
       if (correctErr) {
-        console.error(`[cron/resolve] Error marking correct predictions:`, correctErr);
+        logError("cron/resolve", "Error marking correct predictions", { error: String(correctErr) });
       }
 
-      // Mark incorrect predictions
       const incorrectOption = result === "A" ? "B" : "A";
       const { error: incorrectErr } = await supabaseAdmin
         .from("user_predictions")
         .update({ is_correct: false })
         .eq("prediction_id", prediction.id)
-        .eq("chosen_option", incorrectOption);
+        .eq("chosen_option", incorrectOption)
+        .is("is_correct", null);
 
       if (incorrectErr) {
-        console.error(`[cron/resolve] Error marking incorrect predictions:`, incorrectErr);
+        logError("cron/resolve", "Error marking incorrect predictions", { error: String(incorrectErr) });
       }
 
-      // ── Step 4: Update user stats ───────────────────────────────────────
-      // Fetch all user_predictions for this prediction to update user stats
-      const { data: votes, error: votesErr } = await supabaseAdmin
-        .from("user_predictions")
-        .select("user_address, is_correct")
-        .eq("prediction_id", prediction.id);
+      // ── Step 4: Update user stats only for the pending votes we processed
+      const votes = pendingVotes.map((v) => ({
+        user_address: v.user_address,
+        is_correct: v.chosen_option === result,
+      }));
 
-      if (votesErr || !votes) {
-        console.error(`[cron/resolve] Error fetching votes:`, votesErr);
-        results.push(`Resolved prediction ${prediction.id} (result: ${result}) but failed to update user stats`);
-        continue;
-      }
-
-      // Update each user's stats
+      // Update each user's stats. Single SELECT per user (was N+1 with two
+      // round-trips before; consolidated into one).
       for (const vote of votes) {
         const { data: user, error: userErr } = await supabaseAdmin
           .from("users")
-          .select("total_correct, streak, best_streak, points")
+          .select("total_correct, streak, best_streak, points, badges, total_predictions")
           .eq("address", vote.user_address)
           .single();
 
@@ -207,6 +235,33 @@ async function handleResolve(req: NextRequest) {
         const pointsEarned = isCorrect ? 10 + (newStreak * 5) : 0;
         const newPoints = (user.points ?? 0) + pointsEarned;
 
+        // Check for badge awards (uses already-fetched user data)
+        const existingBadges: { id: string; earned_at: string }[] = user.badges ?? [];
+        const earnedIds = new Set(existingBadges.map((b) => b.id));
+        const newBadges = [...existingBadges];
+        const now = new Date().toISOString().slice(0, 10);
+
+        // Badge: first_prediction
+        if (!earnedIds.has("first_prediction") && (user.total_predictions ?? 0) >= 1) {
+          newBadges.push({ id: "first_prediction", earned_at: now });
+        }
+        // Badge: streak_3
+        if (!earnedIds.has("streak_3") && newStreak >= 3) {
+          newBadges.push({ id: "streak_3", earned_at: now });
+        }
+        // Badge: streak_7
+        if (!earnedIds.has("streak_7") && newStreak >= 7) {
+          newBadges.push({ id: "streak_7", earned_at: now });
+        }
+        // Badge: streak_30
+        if (!earnedIds.has("streak_30") && newStreak >= 30) {
+          newBadges.push({ id: "streak_30", earned_at: now });
+        }
+        // Badge: consistent (10+ correct)
+        if (!earnedIds.has("consistent") && newTotalCorrect >= 10) {
+          newBadges.push({ id: "consistent", earned_at: now });
+        }
+
         await supabaseAdmin
           .from("users")
           .update({
@@ -214,6 +269,7 @@ async function handleResolve(req: NextRequest) {
             streak: newStreak,
             best_streak: newBestStreak,
             points: newPoints,
+            badges: newBadges,
           })
           .eq("address", vote.user_address);
       }
@@ -223,7 +279,7 @@ async function handleResolve(req: NextRequest) {
 
     return NextResponse.json({ results });
   } catch (err) {
-    console.error("[cron/resolve] Unexpected error:", err);
+    logError("cron/resolve", "Unexpected error", { error: String(err) });
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

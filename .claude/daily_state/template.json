@@ -1,0 +1,42 @@
+{
+  "date": "YYYY-MM-DD",
+  "mode": "daily | overnight",
+  "model": null,
+  "started_at": null,
+  "ended_at": null,
+  "context_start_pct": 100,
+  "context_end_pct": null,
+  "compact_count": 0,
+  "current_task": {
+    "id": null,
+    "title": null,
+    "status": "pending",
+    "stream": null,
+    "started_at": null,
+    "files_touched": [],
+    "blocked_items": [],
+    "reason": null
+  },
+  "tasks": [],
+  "pending_approvals": [],
+  "audit_results": {
+    "last_run": null,
+    "exit_code": null,
+    "critical_count": 0,
+    "warning_count": 0
+  },
+  "stats": {
+    "stream_a_count": 0,
+    "stream_b_count": 0,
+    "stream_c_count": 0,
+    "completed": 0,
+    "partial": 0,
+    "blocked": 0,
+    "skipped": 0
+  },
+  "next_session_resume": {
+    "from_task_id": null,
+    "from_file": null,
+    "notes": null
+  }
+}

@@ -41,9 +41,7 @@ function makeEntries(
 
     return {
       rank,
-      address: isCurrentUser
-        ? "0xCURRENT_USER"
-        : `0xFAKE_${seed}_${rank}`,
+      opaque_id: isCurrentUser ? "currentuser" : `fake${seed}r${rank}`,
       display_name: isCurrentUser
         ? "You"
         : NAMES[(rank + seed - 1) % NAMES.length],

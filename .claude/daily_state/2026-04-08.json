@@ -1,0 +1,122 @@
+{
+  "date": "2026-04-08",
+  "mode": "overnight-strategy",
+  "model": "Opus 4.6 1M Medium",
+  "started_at": "2026-04-07T23:30:00+09:00",
+  "context_start_pct": 60,
+  "compact_count": 0,
+  "current_task": "stream-a1-wallet-auth-pivot",
+  "tasks": [
+    {
+      "id": "fix-language-dropdown-z-index",
+      "title": "予測ページ言語選択 UI バグ修正",
+      "status": "completed",
+      "stream": "C",
+      "files_touched": ["src/app/page.tsx"],
+      "summary": "header z-10 → z-50"
+    },
+    {
+      "id": "loop-9-rule-audit-warnings",
+      "title": "Loop 9: rule_audit warning 2件解消",
+      "status": "completed",
+      "stream": "C"
+    },
+    {
+      "id": "loop-10-input-validation",
+      "title": "Loop 10: /api/predict + /api/verify input validation",
+      "status": "completed",
+      "stream": "B",
+      "note": "verify route は wallet auth pivot で削除"
+    },
+    {
+      "id": "loop-11-profile-loading",
+      "title": "Loop 11: ProfileScreen ローディングスケルトン",
+      "status": "completed",
+      "stream": "B"
+    },
+    {
+      "id": "stream-a1-wallet-auth-pivot",
+      "title": "Stream A1: Wallet Auth (SIWE) ピボット — 審査 Rejected 対応",
+      "status": "completed",
+      "stream": "A",
+      "files_created": [
+        "src/app/api/auth/nonce/route.ts",
+        "src/app/api/auth/wallet/route.ts",
+        "supabase/migrations/20260408_wallet_auth_pivot.sql"
+      ],
+      "files_updated": [
+        "src/app/page.tsx",
+        "src/components/providers/AppProvider.tsx",
+        "src/app/api/profile/route.ts",
+        "src/components/screens/LeaderboardScreen.tsx",
+        "src/components/screens/ProfileScreen.tsx",
+        "src/i18n/en.json",
+        "src/i18n/ja.json",
+        "src/i18n/es.json",
+        "src/i18n/pt.json",
+        "src/i18n/ko.json",
+        "src/i18n/th.json"
+      ],
+      "files_deleted": [
+        "src/app/api/verify/route.ts",
+        "src/app/api/rp-signature/route.ts"
+      ],
+      "summary": "Daily Predict 審査 Rejected (use wallet auth to login) への対応として IDKit/orbLegacy → MiniKit walletAuth (SIWE) に完全ピボット。GET /api/auth/nonce + POST /api/auth/wallet を新設し verifySiweMessage で検証、既存 HMAC auth_token システム (lib/auth.ts) はそのまま流用 (wallet address にバインド)。AppProvider/ProfileScreen/LeaderboardScreen の nullifierHash → walletAddress リネーム。IDKit verify/rp-signature route 削除。i18n 6言語の verify.* ラベル更新。localStorage キー名変更で旧セッション自動破棄。migration ファイルは旧 2 user データクリア + address カラムへの comment 追加 (Gate A 待ち)。build PASS / rule_audit 0/0 PASS。"
+    }
+  ],
+  "pending_approvals": [],
+  "completed_resubmission": {
+    "completed_at": "2026-04-08T13:25:00+09:00",
+    "production_deploy": {
+      "url": "https://daily-predict-two.vercel.app",
+      "deployment_id": "dpl_56DsDH23BJiutArixTunDZ3Kp5P5",
+      "preview_url": "https://daily-predict-b8k8bxfr2-shinyayudab-2161s-projects.vercel.app",
+      "ready_state": "READY"
+    },
+    "migration_applied": {
+      "file": "supabase/migrations/20260408_wallet_auth_pivot.sql",
+      "result": "Success. No rows returned",
+      "method": "Supabase Dashboard SQL Editor (手動・Claude in Chrome 経由)",
+      "fix": "weekly_leaderboard 参照を削除 (前日の cleanup migration で DROP 済みだったため)"
+    },
+    "developer_portal_resubmission": {
+      "status": "In review",
+      "previous_status": "Rejected (use wallet auth to login)",
+      "submitted_at": "2026-04-08T13:25:00+09:00",
+      "changelog_summary": "Replaced IDKit/orbLegacy login with MiniKit walletAuth (SIWE). New /api/auth/nonce + /api/auth/wallet routes. Removed /api/verify + /api/rp-signature. 6 locale updates. Wallet-only login.",
+      "next_action": "審査結果待ち (1-3日想定)。Verified になれば自動で P0 3件着手 (Dev Portal 言語拡張 + Spark Track Grant 申請 + 実機再認証確認)"
+    }
+  },
+  "audit_results": {
+    "last_run": "2026-04-08T01:15:00+09:00",
+    "exit_code": 0,
+    "critical_count": 0,
+    "warning_count": 0
+  },
+  "stats": {
+    "stream_a_count": 1,
+    "stream_b_count": 2,
+    "stream_c_count": 2,
+    "files_created": 4,
+    "files_updated": 11,
+    "files_deleted": 2
+  },
+  "background_agents": [
+    {
+      "stream": "D",
+      "id": "rd-research",
+      "status": "running",
+      "purpose": "B2B AI Agency 競合調査 + 新規事業3件発掘 + Worldcoin Grants 最新情報 + IT導入補助金 2026"
+    },
+    {
+      "stream": "E",
+      "id": "ops-research",
+      "status": "running",
+      "purpose": "合同会社設立タスク分解 + 法人口座開設 + Grants 再申請ドラフト + 各種補助金"
+    }
+  ],
+  "next_session_resume": {
+    "from_task_id": "approval-queue-generation",
+    "notes": "本社化指示待ち。Stream D/E の subagent 結果を集約して Approval Queue を生成する"
+  }
+}

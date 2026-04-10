@@ -102,7 +102,9 @@ export type BadgeId =
 
 export interface LeaderboardEntry {
   rank: number;
-  address: string;
+  /** Opaque per-user identifier (first 12 hex chars of nullifier).
+   *  Stable for React keys; intentionally NOT the raw nullifier hash. */
+  opaque_id: string;
   display_name: string;
   total_correct: number;
   accuracy: number;

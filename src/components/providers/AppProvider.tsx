@@ -14,6 +14,7 @@ import type {
   UserProfile,
   TabKey,
 } from "@/lib/types";
+import { MiniKit, VerificationLevel } from "@worldcoin/minikit-js";
 
 // ============================================================
 // Context shape
@@ -24,10 +25,12 @@ interface AppState {
   currentPrediction: Prediction | null;
   /** Yesterday's resolved prediction, null if unavailable */
   yesterdayPrediction: Prediction | null;
-  /** Authenticated user profile; null until World ID verified */
+  /** Authenticated user profile; null until Wallet Auth completes */
   userProfile: UserProfile | null;
-  /** nullifier_hash from World ID; null until verified */
-  nullifierHash: string | null;
+  /** Lowercase 0x-prefixed Ethereum wallet address; null until authenticated */
+  walletAddress: string | null;
+  /** Signed HMAC session token issued by /api/auth/wallet */
+  authToken: string | null;
   /** Whether the user has already predicted today */
   hasPredictedToday: boolean;
   /** The option the user chose today ("A" | "B"), or null */
@@ -41,13 +44,19 @@ interface AppState {
   /** Active bottom-nav tab */
   currentTab: TabKey;
   setCurrentTab: (tab: TabKey) => void;
-  /** Call after successful World ID verification */
-  onVerified: (nullifierHash: string, profile: UserProfile) => void;
+  /** Call after a successful Wallet Auth handshake */
+  onAuthenticated: (address: string, profile: UserProfile, authToken?: string) => void;
   /** Submit a prediction for the current question */
   handlePredict: (option: "A" | "B") => Promise<void>;
 }
 
 const AppContext = createContext<AppState | null>(null);
+
+// localStorage keys are intentionally distinct from any earlier IDKit-era keys
+// so old browser sessions don't try to restore a nullifier-keyed identity
+// against the new wallet-keyed users table.
+const LS_ADDRESS_KEY = "dp_wallet_address";
+const LS_TOKEN_KEY = "dp_wallet_token";
 
 // ============================================================
 // Provider
@@ -57,7 +66,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [currentPrediction, setCurrentPrediction] = useState<Prediction | null>(null);
   const [yesterdayPrediction, setYesterdayPrediction] = useState<Prediction | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [nullifierHash, setNullifierHash] = useState<string | null>(null);
+  // Restore session from localStorage on mount
+  const [walletAddress, setWalletAddress] = useState<string | null>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem(LS_ADDRESS_KEY) ?? null;
+    }
+    return null;
+  });
+  const [authToken, setAuthToken] = useState<string | null>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem(LS_TOKEN_KEY) ?? null;
+    }
+    return null;
+  });
   const [hasPredictedToday, setHasPredictedToday] = useState(false);
   const [userChoice, setUserChoice] = useState<"A" | "B" | null>(null);
   const [resultPercent, setResultPercent] = useState<number | null>(null);
@@ -96,14 +117,48 @@ export function AppProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  // ── Check whether user already predicted today (after verification) ────────
+  // ── Restore user profile from API on session resume ────────────────────────
   useEffect(() => {
-    if (!nullifierHash || !currentPrediction) return;
+    if (!walletAddress || !authToken || userProfile) return;
+
+    async function restoreProfile() {
+      try {
+        const res = await fetch(`/api/profile`, {
+          headers: { authorization: `Bearer ${authToken}` },
+        });
+        if (res.status === 401 || res.status === 404) {
+          // Token expired/invalid OR user no longer exists — clear session
+          // and force the user to sign in with wallet auth again.
+          setAuthToken(null);
+          setWalletAddress(null);
+          if (typeof window !== "undefined") {
+            localStorage.removeItem(LS_TOKEN_KEY);
+            localStorage.removeItem(LS_ADDRESS_KEY);
+          }
+          return;
+        }
+        if (!res.ok) return;
+        const json = await res.json();
+        if (json.profile) {
+          setUserProfile(json.profile);
+        }
+      } catch {
+        // Non-fatal
+      }
+    }
+
+    restoreProfile();
+  }, [walletAddress, authToken, userProfile]);
+
+  // ── Check whether user already predicted today (after authentication) ──────
+  useEffect(() => {
+    if (!walletAddress || !authToken || !currentPrediction) return;
 
     async function checkPriorPrediction() {
       try {
         const res = await fetch(
-          `/api/predict/check?nullifier_hash=${encodeURIComponent(nullifierHash!)}&prediction_id=${encodeURIComponent(currentPrediction!.id)}`
+          `/api/predict/check?prediction_id=${encodeURIComponent(currentPrediction!.id)}`,
+          { headers: { authorization: `Bearer ${authToken}` } }
         );
         if (!res.ok) return;
         const json = await res.json();
@@ -117,29 +172,54 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
 
     checkPriorPrediction();
-  }, [nullifierHash, currentPrediction]);
+  }, [walletAddress, authToken, currentPrediction]);
 
-  // ── Called by the World ID verify flow ────────────────────────────────────
-  const onVerified = useCallback((hash: string, profile: UserProfile) => {
-    setNullifierHash(hash);
+  // ── Called by the Wallet Auth flow on success ─────────────────────────────
+  const onAuthenticated = useCallback((address: string, profile: UserProfile, token?: string) => {
+    setWalletAddress(address);
     setUserProfile(profile);
+    if (token) setAuthToken(token);
+    if (typeof window !== "undefined") {
+      localStorage.setItem(LS_ADDRESS_KEY, address);
+      if (token) localStorage.setItem(LS_TOKEN_KEY, token);
+    }
   }, []);
 
   // ── Submit a prediction ───────────────────────────────────────────────────
   const handlePredict = useCallback(
     async (option: "A" | "B") => {
-      if (submittingRef.current || !currentPrediction || !nullifierHash) return;
+      if (submittingRef.current || !currentPrediction || !walletAddress || !authToken) return;
       submittingRef.current = true;
       setIsSubmitting(true);
 
       try {
+        // ── Orb-level Incognito Action: 1-human-1-vote ──────────────────
+        if (!MiniKit.isInstalled()) {
+          throw new Error("MiniKit is not installed — please open in World App");
+        }
+
+        const verifyResult = await MiniKit.commandsAsync.verify({
+          action: process.env.NEXT_PUBLIC_WLD_ACTION ?? "daily-predict-verify",
+          signal: currentPrediction.id,
+          verification_level: VerificationLevel.Orb,
+        });
+
+        const verifyPayload = verifyResult.finalPayload;
+        if (!verifyPayload || verifyPayload.status !== "success") {
+          // User cancelled or verification failed — do NOT submit the vote
+          return;
+        }
+
         const res = await fetch("/api/predict", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            authorization: `Bearer ${authToken}`,
+          },
           body: JSON.stringify({
             prediction_id: currentPrediction.id,
             chosen_option: option,
-            nullifier_hash: nullifierHash,
+            verify_payload: verifyPayload,
           }),
         });
 
@@ -175,7 +255,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         submittingRef.current = false;
       }
     },
-    [currentPrediction, nullifierHash, setCurrentTab]
+    [currentPrediction, walletAddress, authToken, setCurrentTab]
   );
 
   return (
@@ -184,7 +264,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         currentPrediction,
         yesterdayPrediction,
         userProfile,
-        nullifierHash,
+        walletAddress,
+        authToken,
         hasPredictedToday,
         userChoice,
         resultPercent,
@@ -192,7 +273,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         isSubmitting,
         currentTab,
         setCurrentTab,
-        onVerified,
+        onAuthenticated,
         handlePredict,
       }}
     >

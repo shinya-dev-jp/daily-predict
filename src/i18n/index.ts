@@ -11,12 +11,15 @@ import React from "react";
 import en from "./en.json";
 import ja from "./ja.json";
 import es from "./es.json";
+import th from "./th.json";
+import ko from "./ko.json";
+import pt from "./pt.json";
 
-export type Locale = "en" | "ja" | "es";
+export type Locale = "en" | "ja" | "es" | "th" | "ko" | "pt";
 
-const messages: Record<Locale, Record<string, string>> = { en, ja, es };
+const messages: Record<Locale, Record<string, string>> = { en, ja, es, th, ko, pt };
 
-const SUPPORTED_LOCALES: Locale[] = ["en", "ja", "es"];
+const SUPPORTED_LOCALES: Locale[] = ["en", "ja", "es", "th", "ko", "pt"];
 
 function detectLocale(): Locale {
   if (typeof navigator === "undefined") return "en";

@@ -3,42 +3,46 @@ import { MiniKitWrapper } from "@/components/providers/MiniKitWrapper";
 import { Toaster } from "@worldcoin/mini-apps-ui-kit-react";
 import "./globals.css";
 
-const BASE_URL = "https://daily-predict.vercel.app";
+const BASE_URL = "https://daily-predict-two.vercel.app";
+
+const TITLE = "Daily Predict — A daily prediction game for verified humans";
+const DESCRIPTION =
+  "Vote on real-world outcomes once a day. Verified humans only via World ID. Build streaks, climb the leaderboard, see what the crowd thinks.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
   title: {
-    default: "Daily Predict — Predict the Future, Win WLD",
+    default: TITLE,
     template: "%s | Daily Predict",
   },
-  description:
-    "Make one daily prediction. Verified real humans only via World ID. Top predictors win WLD rewards. Can you beat the crowd?",
-  keywords: ["prediction", "World ID", "World App", "WLD", "daily quiz", "crypto", "forecasting"],
+  description: DESCRIPTION,
+  keywords: [
+    "Daily Predict",
+    "World ID",
+    "World App",
+    "Mini App",
+    "prediction game",
+    "daily quiz",
+    "verified humans",
+    "proof of personhood",
+  ],
   authors: [{ name: "Daily Predict" }],
   creator: "Daily Predict",
   openGraph: {
     type: "website",
     locale: "en_US",
+    alternateLocale: ["ja_JP", "es_ES", "ko_KR", "th_TH", "pt_BR"],
     url: BASE_URL,
     siteName: "Daily Predict",
-    title: "Daily Predict — Predict the Future, Win WLD",
-    description:
-      "One prediction per day. Real humans only. Win WLD by outsmarting the crowd.",
-    images: [
-      {
-        url: "/opengraph-image.png",
-        width: 1200,
-        height: 630,
-        alt: "Daily Predict — Predict the Future, Win WLD",
-      },
-    ],
+    title: TITLE,
+    description: DESCRIPTION,
+    // No image referenced — Next.js will fall back to the icons defined below.
+    // (The previous /opengraph-image.png file was missing, breaking link previews.)
   },
   twitter: {
-    card: "summary_large_image",
-    title: "Daily Predict — Predict the Future, Win WLD",
-    description:
-      "One prediction per day. Real humans only. Win WLD by outsmarting the crowd.",
-    images: ["/opengraph-image.png"],
+    card: "summary",
+    title: TITLE,
+    description: DESCRIPTION,
   },
   icons: {
     icon: "/favicon.ico",
@@ -55,6 +59,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   viewportFit: "cover",
+  themeColor: "#1E1B4B",
 };
 
 export default function RootLayout({
@@ -64,6 +69,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        {/* Preconnect to Supabase to shave ~100-300ms off the first /api call */}
+        <link rel="preconnect" href="https://wgszbxgsxekwdmssnvvd.supabase.co" />
+        <link rel="dns-prefetch" href="https://wgszbxgsxekwdmssnvvd.supabase.co" />
+      </head>
       <body>
         <MiniKitWrapper>
           {children}

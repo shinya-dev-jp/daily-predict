@@ -1,5 +1,45 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
+import { authenticateRequest } from "@/lib/auth";
+import { logError } from "@/lib/server-log";
+
+// ── Worldcoin Incognito Action proof verification ──────────────────────────
+const WORLD_VERIFY_URL = "https://developer.worldcoin.org/api/v2/verify";
+
+async function verifyIncognitoAction(
+  verifyPayload: Record<string, unknown>
+): Promise<{ nullifier_hash: string }> {
+  const appId = process.env.NEXT_PUBLIC_WLD_APP_ID;
+  const action = process.env.NEXT_PUBLIC_WLD_ACTION ?? "daily-predict-verify";
+
+  if (!appId) {
+    throw new Error("Missing NEXT_PUBLIC_WLD_APP_ID");
+  }
+
+  const res = await fetch(`${WORLD_VERIFY_URL}/${appId}/${action}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(verifyPayload),
+  });
+
+  const json = await res.json().catch(() => ({}));
+
+  if (!res.ok) {
+    throw new Error(
+      `World verify API returned ${res.status}: ${JSON.stringify(json)}`
+    );
+  }
+
+  const nullifier =
+    json.nullifier_hash ??
+    (verifyPayload.nullifier_hash as string | undefined);
+
+  if (!nullifier || typeof nullifier !== "string") {
+    throw new Error("nullifier_hash missing from verify response");
+  }
+
+  return { nullifier_hash: nullifier };
+}
 
 /**
  * POST /api/predict
@@ -7,32 +47,72 @@ import { supabaseAdmin } from "@/lib/supabase";
  * Submit a prediction (option A or B) for today's question.
  * Each user (identified by nullifier_hash) can only predict once per day.
  *
+ * Authentication
+ *   Required. Send the auth token issued by /api/verify in the
+ *   `Authorization: Bearer <token>` header. The nullifier is derived from
+ *   the verified token, NOT from the request body — this prevents vote
+ *   spoofing using leaked nullifier hashes.
+ *
  * Request body:
- *   {
- *     prediction_id: string,   // UUID of the prediction
- *     chosen_option: "A" | "B",
- *     nullifier_hash: string,  // World ID nullifier hash
- *   }
+ *   { prediction_id: string, chosen_option: "A" | "B", verify_payload: object }
  *
  * Response (200):
- *   {
- *     success: true,
- *     option_a_percent: number,
- *     vote_count: number,
- *     chosen_option: "A" | "B",
- *   }
- *
- * Response (400 / 409 / 500):
- *   { success: false, error: string }
+ *   { success: true, option_a_percent, vote_count, chosen_option }
  */
 export async function POST(req: NextRequest) {
   try {
-    const { prediction_id, chosen_option, nullifier_hash } = await req.json();
+    // ── Authentication: derive nullifier from signed token ───────────────────
+    const nullifier_hash = authenticateRequest(req);
+    if (!nullifier_hash) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized — please re-verify with World ID" },
+        { status: 401 }
+      );
+    }
+
+    // ── Parse JSON body explicitly so a malformed body returns 400, not 500 ──
+    let body: { prediction_id?: unknown; chosen_option?: unknown; verify_payload?: unknown };
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json(
+        { success: false, error: "Invalid JSON body" },
+        { status: 400 }
+      );
+    }
+    const { prediction_id, chosen_option, verify_payload } = body;
 
     // ── Input validation ────────────────────────────────────────────────────
-    if (!prediction_id || !chosen_option || !nullifier_hash) {
+    if (!prediction_id || !chosen_option || !verify_payload) {
       return NextResponse.json(
-        { success: false, error: "Missing prediction_id, chosen_option, or nullifier_hash" },
+        { success: false, error: "Missing prediction_id, chosen_option, or verify_payload" },
+        { status: 400 }
+      );
+    }
+
+    // ── Server-side Orb proof verification ─────────────────────────────────
+    let nullifier_hash_from_orb: string;
+    try {
+      const verified = await verifyIncognitoAction(
+        verify_payload as Record<string, unknown>
+      );
+      nullifier_hash_from_orb = verified.nullifier_hash;
+    } catch (err) {
+      logError("api/predict", "World ID Orb verification failed", {
+        error: err instanceof Error ? err.message : String(err),
+      });
+      return NextResponse.json(
+        { success: false, error: "World ID verification failed" },
+        { status: 400 }
+      );
+    }
+
+    // Type and length guards: prediction_id is a Supabase UUID (max 36 chars).
+    // Reject anything longer to keep DB queries cheap and prevent garbage input
+    // from triggering expensive lookups.
+    if (typeof prediction_id !== "string" || prediction_id.length === 0 || prediction_id.length > 36) {
+      return NextResponse.json(
+        { success: false, error: "Invalid prediction_id format" },
         { status: 400 }
       );
     }
@@ -72,27 +152,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // ── Ensure user exists (should already be created via /api/verify) ───────
-    const { error: userCheckErr } = await supabaseAdmin
-      .from("users")
-      .select("address")
-      .eq("address", nullifier_hash)
-      .single();
-
-    if (userCheckErr) {
-      // Auto-create if missing (edge case: user skipped verify step)
-      const { error: insertErr } = await supabaseAdmin
-        .from("users")
-        .insert({ address: nullifier_hash });
-
-      if (insertErr && insertErr.code !== "23505") {
-        console.error("[api/predict] Failed to create user:", insertErr);
-        return NextResponse.json(
-          { success: false, error: "User not found. Please verify with World ID first." },
-          { status: 403 }
-        );
-      }
-    }
+    // (User existence guaranteed by valid auth token — no extra DB round-trip)
 
     // ── Insert the user_prediction row ──────────────────────────────────────
     const { error: voteErr } = await supabaseAdmin
@@ -101,82 +161,60 @@ export async function POST(req: NextRequest) {
         user_address: nullifier_hash,
         prediction_id,
         chosen_option,
+        nullifier_hash: nullifier_hash_from_orb,
       });
 
     if (voteErr) {
-      // Unique constraint (user_address, prediction_id) — already predicted
+      // Unique constraint (prediction_id, nullifier_hash) — same human already predicted
       if (voteErr.code === "23505") {
         return NextResponse.json(
           { success: false, error: "You have already predicted on this question" },
           { status: 409 }
         );
       }
-      console.error("[api/predict] Insert user_prediction error:", voteErr);
+      logError("api/predict", "insert user_prediction failed", { code: voteErr.code });
       return NextResponse.json(
         { success: false, error: "Failed to submit prediction" },
         { status: 500 }
       );
     }
 
-    // ── Update denormalized vote counters on predictions ─────────────────────
-    const newVoteCount = prediction.vote_count + 1;
-    const newOptionAVotes =
-      prediction.option_a_votes + (chosen_option === "A" ? 1 : 0);
-
-    const { data: updated, error: updateErr } = await supabaseAdmin
-      .from("predictions")
-      .update({
-        vote_count: newVoteCount,
-        option_a_votes: newOptionAVotes,
-      })
-      .eq("id", prediction_id)
-      .select("vote_count, option_a_votes")
-      .single();
+    // ── Atomic update denormalized vote counters on predictions ──────────────
+    const { data: updated, error: updateErr } = await supabaseAdmin.rpc(
+      "increment_vote",
+      { pred_id: prediction_id, is_option_a: chosen_option === "A" }
+    );
 
     if (updateErr || !updated) {
-      console.error("[api/predict] Failed to update vote counts:", updateErr);
-      // Prediction was recorded — return best-effort counts
-      const option_a_percent =
-        newVoteCount > 0 ? Math.round((newOptionAVotes / newVoteCount) * 100) : 50;
+      logError("api/predict", "increment_vote rpc failed", { code: updateErr?.code });
       return NextResponse.json({
         success: true,
-        option_a_percent,
-        vote_count: newVoteCount,
+        option_a_percent: 50,
+        vote_count: prediction.vote_count + 1,
         chosen_option,
       });
     }
 
-    // ── Increment user.total_predictions (fire-and-forget) ──────────────────
-    // Read-modify-write is acceptable at this scale; a DB trigger is the
-    // production-grade solution but is out of scope for the initial migration.
-    supabaseAdmin
-      .from("users")
-      .select("total_predictions")
-      .eq("address", nullifier_hash)
-      .single()
-      .then(({ data }) => {
-        if (data) {
-          supabaseAdmin
-            .from("users")
-            .update({ total_predictions: (data.total_predictions ?? 0) + 1 })
-            .eq("address", nullifier_hash)
-            .then(() => {});
-        }
-      });
+    // ── Atomic increment user.total_predictions ──────────────────────────────
+    const { error: incErr } = await supabaseAdmin.rpc("increment_user_predictions", {
+      user_addr: nullifier_hash,
+    });
+    if (incErr) {
+      logError("api/predict", "increment_user_predictions rpc failed", { code: incErr.code });
+    }
 
-    const option_a_percent =
-      updated.vote_count > 0
-        ? Math.round((updated.option_a_votes / updated.vote_count) * 100)
-        : 50;
+    const voteCount = updated.new_vote_count ?? prediction.vote_count + 1;
+    const optionAVotes = updated.new_option_a_votes ?? prediction.option_a_votes + (chosen_option === "A" ? 1 : 0);
+    const option_a_percent = voteCount > 0 ? Math.round((optionAVotes / voteCount) * 100) : 50;
 
     return NextResponse.json({
       success: true,
       option_a_percent,
-      vote_count: updated.vote_count,
+      vote_count: voteCount,
       chosen_option,
     });
   } catch (err) {
-    console.error("[api/predict] Unexpected error:", err);
+    logError("api/predict", "unexpected error", { error: err instanceof Error ? err.message : String(err) });
     return NextResponse.json(
       { success: false, error: "Internal server error" },
       { status: 500 }

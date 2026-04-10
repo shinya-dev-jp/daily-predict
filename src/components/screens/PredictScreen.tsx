@@ -7,6 +7,8 @@ import {
   Users,
   Flame,
   Lock,
+  Shield,
+  Share2,
   TrendingUp,
   TrendingDown,
   CheckCircle2,
@@ -20,6 +22,7 @@ import {
 import type { Prediction, UserProfile } from "@/lib/types";
 import { CATEGORY_META } from "@/data/demo-predictions";
 import { useI18n } from "@/i18n";
+import { shareText, buildPredictionShareText } from "@/lib/share";
 
 const CATEGORY_ICON: Record<string, React.ComponentType<{ className?: string }>> = {
   bitcoin: Bitcoin,
@@ -79,9 +82,9 @@ function CategoryBadge({ category }: { category: string }) {
   const label = translated !== `category.${category}` ? translated : meta.label;
   return (
     <span
-      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${meta.bg} ${meta.color}`}
+      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-semibold backdrop-blur-sm border border-white/[0.08] ${meta.bg} ${meta.color}`}
     >
-      <IconComp className="h-3.5 w-3.5" />
+      <IconComp className="h-3 w-3" />
       <span>{label}</span>
     </span>
   );
@@ -126,6 +129,7 @@ function LockedState({
   const { t } = useI18n();
   const label = chosen === "A" ? prediction.option_a : prediction.option_b;
   const isA = chosen === "A";
+  const yourPercent = isA ? prediction.option_a_percent : 100 - prediction.option_a_percent;
 
   return (
     <motion.div
@@ -133,49 +137,112 @@ function LockedState({
       initial={{ opacity: 0, scale: 0.92 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ type: "spring", stiffness: 260, damping: 22 }}
-      className="flex flex-col items-center gap-6 px-6 py-10 text-center"
+      className="flex flex-col items-center gap-5 px-6 py-8 text-center"
     >
-      <motion.div
-        initial={{ scale: 0, rotate: -30 }}
-        animate={{ scale: 1, rotate: 0 }}
-        transition={{ type: "spring", stiffness: 300, damping: 18, delay: 0.1 }}
-        className="h-20 w-20 rounded-full bg-[#2563eb]/20 flex items-center justify-center"
-      >
-        <CheckCircle2 className="h-10 w-10 text-[#60a5fa]" />
-      </motion.div>
+      {/* Animated check with pulse ring */}
+      <div className="relative">
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: [0, 1.3, 1] }}
+          transition={{ duration: 0.5, times: [0, 0.6, 1] }}
+          className="absolute inset-0 h-16 w-16 rounded-full bg-[#06B6D4]/10"
+        />
+        <motion.div
+          initial={{ scale: 0, rotate: -30 }}
+          animate={{ scale: 1, rotate: 0 }}
+          transition={{ type: "spring", stiffness: 300, damping: 18, delay: 0.1 }}
+          className="h-16 w-16 rounded-full bg-[#06B6D4]/20 flex items-center justify-center relative"
+        >
+          <CheckCircle2 className="h-8 w-8 text-[#06B6D4]" />
+        </motion.div>
+      </div>
 
       <motion.div
         initial={{ y: 12, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.25 }}
-        className="flex flex-col gap-2"
+        className="flex flex-col gap-1"
       >
-        <p className="text-white font-bold text-2xl">{t("locked.title")}</p>
+        <p className="text-white font-bold text-xl">{t("locked.title")}</p>
         <p className="text-[#94A3B8] text-sm">{t("locked.subtitle")}</p>
       </motion.div>
 
+      {/* Your choice badge */}
       <motion.div
         initial={{ y: 12, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.38 }}
+        transition={{ delay: 0.35 }}
         className={`flex items-center gap-2 px-5 py-3 rounded-2xl font-semibold text-sm ${
           isA
             ? "bg-[#00C230]/15 text-[#00C230] border border-[#00C230]/30"
-            : "bg-[#F2280D]/15 text-[#F2280D] border border-[#F2280D]/30"
+            : "bg-white/10 text-white/70 border border-white/20"
         }`}
       >
-        {isA ? (
-          <TrendingUp className="h-4 w-4" />
-        ) : (
-          <TrendingDown className="h-4 w-4" />
-        )}
+        {isA ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
         <span>{t("locked.youSaid").replace("{label}", label)}</span>
       </motion.div>
+
+      {/* Live vote split */}
+      <motion.div
+        initial={{ y: 12, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.45 }}
+        className="w-full bg-white/5 rounded-2xl p-4 border border-white/10"
+      >
+        <div className="flex justify-between text-[11px] mb-2">
+          <span className="text-[#06B6D4] font-semibold">{prediction.option_a_percent}% {prediction.option_a}</span>
+          <span className="text-white/40">{100 - prediction.option_a_percent}% {prediction.option_b}</span>
+        </div>
+        <div className="flex h-2.5 w-full rounded-full overflow-hidden">
+          <motion.div
+            className="h-full bg-[#06B6D4] rounded-l-full"
+            initial={{ width: "50%" }}
+            animate={{ width: `${prediction.option_a_percent}%` }}
+            transition={{ duration: 0.8, ease: "easeOut", delay: 0.5 }}
+          />
+          <motion.div
+            className="h-full bg-white/15 rounded-r-full"
+            initial={{ width: "50%" }}
+            animate={{ width: `${100 - prediction.option_a_percent}%` }}
+            transition={{ duration: 0.8, ease: "easeOut", delay: 0.5 }}
+          />
+        </div>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.0 }}
+          className="flex items-center justify-center gap-2 mt-3"
+        >
+          <Users className="h-3 w-3 text-[#94A3B8]" />
+          <span className="text-[#94A3B8] text-[11px]">
+            {yourPercent}% {t("locked.agreeWithYou")} · {prediction.vote_count.toLocaleString()} {t("predict.predicted")}
+          </span>
+        </motion.div>
+      </motion.div>
+
+      {/* Share button */}
+      <motion.button
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.8 }}
+        onClick={async () => {
+          const text = buildPredictionShareText(
+            prediction.question_en,
+            label,
+            yourPercent
+          );
+          await shareText(text);
+        }}
+        className="flex items-center justify-center gap-2 w-full py-3 rounded-2xl bg-white/[0.06] border border-white/[0.1] text-white/70 text-sm font-medium active:bg-white/[0.1] transition-colors"
+      >
+        <Share2 className="h-4 w-4" />
+        {t("locked.share")}
+      </motion.button>
 
       <motion.p
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.55 }}
+        transition={{ delay: 0.9 }}
         className="text-[#94A3B8] text-xs"
       >
         {t("locked.comeBack")}
@@ -243,7 +310,9 @@ export function PredictScreen({
 
   const effectiveLocale = locale ?? i18nLocale;
   const question =
-    effectiveLocale === "ja" ? prediction.question_ja : prediction.question_en;
+    effectiveLocale === "ja" ? prediction.question_ja
+    : effectiveLocale === "es" ? ((prediction as unknown as Record<string, string>).question_es ?? prediction.question_en)
+    : prediction.question_en;
   const isClosed = prediction.status !== "open";
 
   function handleVote(option: "A" | "B") {
@@ -255,18 +324,18 @@ export function PredictScreen({
   return (
     <div className="flex flex-col min-h-full bg-[#1E1B4B] pb-4">
       {/* Top bar: category + countdown + streak */}
-      <div className="flex items-center justify-between px-5 pt-5 pb-1">
-        <CategoryBadge category={prediction.category} />
+      <div className="flex items-center justify-between px-5 pt-4 pb-1">
+        <div className="flex items-center gap-2">
+          <CategoryBadge category={prediction.category} />
+          {userProfile && userProfile.streak >= 1 && (
+            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-[#F59E0B]/10 text-[10px] font-semibold text-[#F59E0B]">
+              <Flame className="h-3 w-3" />
+              {userProfile.streak}
+            </span>
+          )}
+        </div>
         <CountdownDisplay closesAt={prediction.closes_at} />
       </div>
-      {userProfile && userProfile.streak >= 1 && (
-        <div className="flex items-center gap-2 px-5 py-2">
-          <Flame className="h-3.5 w-3.5 text-[#F59E0B]" />
-          <span className="text-xs font-semibold text-[#F59E0B]">
-            {t("predict.streak").replace("{n}", String(userProfile.streak))}
-          </span>
-        </div>
-      )}
 
       <AnimatePresence mode="wait">
         {chosen ? (
@@ -283,57 +352,84 @@ export function PredictScreen({
             {/* Radial glow behind card */}
             <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[400px] h-[400px] bg-[#06B6D4]/5 rounded-full blur-[100px] pointer-events-none" />
 
-            {/* Verified Humans Only pill */}
+            {/* Verified Humans Only pill — glassmorphism */}
             <div className="flex justify-center">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-white/20 text-[10px] font-medium text-white/50 uppercase tracking-wider">
-                <Users className="h-3 w-3" />
+              <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/[0.06] backdrop-blur-sm border border-white/[0.1] text-[10px] font-semibold text-white/50 uppercase tracking-wider">
+                <Shield className="h-3 w-3 text-[#06B6D4]" />
                 Verified Humans Only
               </span>
             </div>
 
-            {/* Question card — glassmorphism */}
-            <div className="rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 p-5 flex flex-col gap-3 relative z-10">
-              <p className="text-white/60 text-[11px] font-medium uppercase tracking-[0.15em]">
+            {/* Question card — glassmorphism with glow */}
+            <div className="rounded-2xl bg-white/[0.07] backdrop-blur-md border border-white/[0.12] p-5 flex flex-col gap-3 relative z-10 shadow-xl shadow-black/10">
+              <p className="text-[#06B6D4] text-[11px] font-semibold uppercase tracking-[0.15em]">
                 {t("predict.todaysQuestion")}
               </p>
+
               <h2 className="text-white font-bold text-[22px] leading-[1.25] tracking-tight">
                 {question}
               </h2>
-              <div className="flex items-center gap-1.5 mt-1">
-                <div className="h-1.5 w-1.5 rounded-full bg-white/50" />
-                <span className="text-white/50 text-xs">
-                  <span className="text-white/80 font-medium">{prediction.vote_count.toLocaleString()}</span> {t("predict.predicted")}
-                </span>
-              </div>
 
               {/* Vote split bar */}
-              <div className="flex flex-col gap-2 mt-2">
-                <div className="flex h-2 w-full rounded-full overflow-hidden">
+              <div className="flex flex-col gap-2 mt-1">
+                <div className="flex h-2.5 w-full rounded-full overflow-hidden bg-white/5">
                   <div
-                    className="h-full bg-[#06B6D4] rounded-l-full transition-all duration-700"
+                    className="h-full bg-gradient-to-r from-[#06B6D4] to-[#06B6D4]/70 rounded-l-full transition-all duration-700"
                     style={{ width: `${prediction.option_a_percent}%` }}
                   />
-                  <div
-                    className="h-full bg-white/20 rounded-r-full transition-all duration-700"
-                    style={{ width: `${100 - prediction.option_a_percent}%` }}
-                  />
                 </div>
-                <div className="flex justify-between text-[11px] font-medium">
+                <div className="flex justify-between text-[11px] font-semibold">
                   <span className="text-[#06B6D4]">{prediction.option_a_percent}% {prediction.option_a}</span>
-                  <span className="text-white/40">{100 - prediction.option_a_percent}% {prediction.option_b}</span>
+                  <span className="text-white/35">{100 - prediction.option_a_percent}% {prediction.option_b}</span>
                 </div>
+              </div>
+
+              {/* Crowd sentiment */}
+              <div className="flex items-center justify-between pt-2 border-t border-white/[0.06]">
+                <div className="flex items-center gap-1.5">
+                  <Users className="h-3 w-3 text-white/30" />
+                  <span className="text-[10px] text-white/40">{prediction.vote_count.toLocaleString()} {t("predict.predicted")}</span>
+                </div>
+                <span className={`text-[10px] font-semibold ${
+                  prediction.option_a_percent >= 65 ? "text-[#06B6D4]"
+                  : prediction.option_a_percent <= 35 ? "text-[#F59E0B]"
+                  : "text-white/40"
+                }`}>
+                  {prediction.option_a_percent >= 65 ? t("predict.strongYes")
+                   : prediction.option_a_percent <= 35 ? t("predict.strongNo")
+                   : t("predict.divided")}
+                </span>
               </div>
             </div>
 
-            {/* Vote buttons — compact, side by side */}
-            <VoteButtons
-              prediction={prediction}
-              onVote={handleVote}
-              disabled={isClosed}
-            />
+            {/* Vote buttons — both cyan glass, no bias */}
+            <div
+              className={`flex gap-3 w-full ${isClosed ? "opacity-40 pointer-events-none" : ""}`}
+              role="group"
+              aria-label="Vote on today's question"
+            >
+              <motion.button
+                whileTap={{ scale: 0.96 }}
+                onClick={() => handleVote("A")}
+                aria-label={`Vote ${prediction.option_a}`}
+                disabled={isClosed}
+                className="flex-1 py-4 rounded-2xl bg-[#06B6D4]/15 border border-[#06B6D4]/30 text-[#06B6D4] font-bold text-sm active:bg-[#06B6D4]/25 transition-colors cursor-pointer backdrop-blur-sm disabled:cursor-not-allowed"
+              >
+                {prediction.option_a}
+              </motion.button>
+              <motion.button
+                whileTap={{ scale: 0.96 }}
+                onClick={() => handleVote("B")}
+                aria-label={`Vote ${prediction.option_b}`}
+                disabled={isClosed}
+                className="flex-1 py-4 rounded-2xl bg-[#06B6D4]/15 border border-[#06B6D4]/30 text-[#06B6D4] font-bold text-sm active:bg-[#06B6D4]/25 transition-colors cursor-pointer backdrop-blur-sm disabled:cursor-not-allowed"
+              >
+                {prediction.option_b}
+              </motion.button>
+            </div>
 
             {/* Fine print */}
-            <p className="text-white/30 text-[11px] mt-1">
+            <p className="text-white/25 text-[11px] mt-0.5 text-center">
               <Lock className="inline h-3 w-3 mr-1 -mt-0.5" />
               {t("predict.lockedAfterTapping")}
             </p>

@@ -22,6 +22,9 @@ export const supabase = new Proxy({} as SupabaseClient, {
 /** Server-side client (service role key) — lazy, use only in API routes / server components */
 let _supabaseAdmin: SupabaseClient | null = null;
 export function getSupabaseAdmin(): SupabaseClient {
+  if (typeof window !== "undefined") {
+    throw new Error("supabaseAdmin must not be used in client-side code");
+  }
   if (!_supabaseAdmin) {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;

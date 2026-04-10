@@ -19,6 +19,7 @@ import {
 import type { Prediction, UserPrediction } from "@/lib/types";
 import { CATEGORY_META } from "@/data/demo-predictions";
 import { useI18n } from "@/i18n";
+import { shareText, buildResultShareText } from "@/lib/share";
 
 const CATEGORY_ICON: Record<string, React.ComponentType<{ className?: string }>> = {
   bitcoin: Bitcoin,
@@ -97,22 +98,9 @@ function RevealIcon({ isCorrect }: { isCorrect: boolean }) {
 // ============================================================
 
 async function shareResult(prediction: Prediction, isCorrect: boolean) {
-  const percentA = prediction.option_a_percent;
-  const percentCorrect = isCorrect ? percentA : 100 - percentA;
-  const text = isCorrect
-    ? `I was in the ${percentCorrect}% who got it right on Daily Predict!\n\n"${prediction.question_en}"\n\nPlay on World App`
-    : `${percentCorrect}% of humans got today's Daily Predict right — I wasn't one of them.\n\n"${prediction.question_en}"\n\nPlay on World App`;
-
-  if (typeof navigator !== "undefined" && navigator.share) {
-    try {
-      await navigator.share({ text, title: "Daily Predict" });
-      return;
-    } catch {
-      // fall through to clipboard
-    }
-  }
-
-  await navigator.clipboard.writeText(text);
+  const percentCorrect = isCorrect ? prediction.option_a_percent : 100 - prediction.option_a_percent;
+  const text = buildResultShareText(prediction.question_en, isCorrect, percentCorrect);
+  await shareText(text);
 }
 
 // ============================================================
@@ -127,9 +115,14 @@ interface ResultScreenProps {
 }
 
 export function ResultScreen({ prediction, userVote, streak = 0 }: ResultScreenProps) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [shareState, setShareState] = useState<"idle" | "shared">("idle");
   const [showDetails, setShowDetails] = useState(false);
+
+  const questionText =
+    locale === "ja" ? prediction.question_ja
+    : locale === "es" ? ((prediction as unknown as Record<string, string>).question_es ?? prediction.question_en)
+    : prediction.question_en;
 
   const resultOption = prediction.result; // "A" | "B" | null
   const isResolved = resultOption !== null;
@@ -185,20 +178,20 @@ export function ResultScreen({ prediction, userVote, streak = 0 }: ResultScreenP
     <div className="flex flex-col gap-5 px-5 pt-5 pb-6 bg-[#1E1B4B] min-h-full">
       {/* Category badge */}
       <span
-        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold self-start ${catMeta.bg} ${catMeta.color}`}
+        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-semibold self-start backdrop-blur-sm border border-white/[0.08] ${catMeta.bg} ${catMeta.color}`}
       >
-        <CatIcon className="h-3.5 w-3.5" />
+        <CatIcon className="h-3 w-3" />
         <span>{catMeta.label}</span>
       </span>
 
       {/* Result card — glassmorphism */}
-      <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 flex flex-col items-center gap-5 shadow-xl">
+      <div className="bg-white/[0.07] backdrop-blur-md border border-white/[0.12] rounded-2xl p-6 flex flex-col items-center gap-5 shadow-xl shadow-black/10">
         {/* Question */}
         <p className="text-[#94A3B8] text-xs font-semibold uppercase tracking-widest self-start">
           {t("result.yesterdays")}
         </p>
         <h2 className="text-white font-bold text-lg leading-snug self-start">
-          {prediction.question_en}
+          {questionText}
         </h2>
 
         {/* Result */}
@@ -318,7 +311,7 @@ export function ResultScreen({ prediction, userVote, streak = 0 }: ResultScreenP
         transition={{ delay: 1.1 }}
         whileTap={{ scale: 0.96 }}
         onClick={handleShare}
-        className="flex items-center justify-center gap-2 py-4 rounded-2xl bg-[#252152] border border-white/10 text-white font-semibold text-sm active:bg-[#2D2960] transition-colors"
+        className="flex items-center justify-center gap-2 py-4 rounded-2xl bg-white/[0.06] border border-white/[0.1] backdrop-blur-sm text-white/80 font-semibold text-sm active:bg-white/[0.1] transition-colors"
       >
         <Share2 className="h-4 w-4 text-white/60" />
         {shareState === "shared" ? t("result.copied") : t("result.share")}

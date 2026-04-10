@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Medal, Globe, Flame, Trophy } from "lucide-react";
+import { Medal, Globe, Flame, Trophy, Loader2 } from "lucide-react";
 import { DEMO_LEADERBOARD } from "@/data/demo-leaderboard";
+import { useApp } from "@/components/providers/AppProvider";
 import { useI18n } from "@/i18n";
 import type { LeaderboardEntry, LeaderboardPeriod } from "@/lib/types";
 
@@ -48,6 +49,7 @@ function RankCell({ entry }: { entry: LeaderboardEntry }) {
 }
 
 function AccuracyBadge({ accuracy, isCurrentUser }: { accuracy: number; isCurrentUser: boolean }) {
+  const { t } = useI18n();
   return (
     <div className="text-right shrink-0">
       <div
@@ -55,21 +57,21 @@ function AccuracyBadge({ accuracy, isCurrentUser }: { accuracy: number; isCurren
           isCurrentUser ? "text-white" : "text-white/90"
         }`}
       >
-        {accuracy}% correct
+        {accuracy}% {t("leaderboard.correct")}
       </div>
       <div
         className={`text-[11px] ${
           isCurrentUser ? "text-[#94A3B8]" : "text-[#94A3B8]"
         }`}
       >
-        {/* total predictions derived from points proxy; shown as stat label */}
-        Top predictor
+        {t("leaderboard.topPredictor")}
       </div>
     </div>
   );
 }
 
 function LeaderboardRow({ entry, index }: { entry: LeaderboardEntry; index: number }) {
+  const { t } = useI18n();
   const isCurrent = entry.is_current_user;
 
   return (
@@ -80,8 +82,8 @@ function LeaderboardRow({ entry, index }: { entry: LeaderboardEntry; index: numb
       transition={{ delay: index * 0.02, duration: 0.2 }}
       className={`flex items-center gap-3 p-3 rounded-xl transition-colors ${
         isCurrent
-          ? "bg-[#06B6D4]/20 text-white border border-[#06B6D4]/30"
-          : "bg-[#252152] hover:bg-[#2D2960]"
+          ? "bg-[#06B6D4]/10 text-white border border-[#06B6D4]/25 backdrop-blur-sm"
+          : "bg-white/[0.04] border border-white/[0.06] hover:bg-white/[0.07]"
       }`}
     >
       {/* Rank / Medal */}
@@ -110,7 +112,7 @@ function LeaderboardRow({ entry, index }: { entry: LeaderboardEntry; index: numb
           </span>
           {isCurrent && (
             <span className="text-[10px] bg-[rgb(0,194,48)] text-white px-1.5 py-0.5 rounded-full font-semibold uppercase shrink-0">
-              You
+              {t("leaderboard.you")}
             </span>
           )}
         </div>
@@ -121,9 +123,9 @@ function LeaderboardRow({ entry, index }: { entry: LeaderboardEntry; index: numb
             }`}
           >
             <Flame className="h-3 w-3" />
-            <span>{entry.streak}-day streak</span>
+            <span>{t("leaderboard.dayStreak").replace("{n}", String(entry.streak))}</span>
             <span className="mx-1 opacity-40">·</span>
-            <span>{entry.total_correct} correct</span>
+            <span>{entry.total_correct} {t("leaderboard.correct")}</span>
           </div>
         )}
       </div>
@@ -138,16 +140,17 @@ function LeaderboardRow({ entry, index }: { entry: LeaderboardEntry; index: numb
 // Current user highlight card
 // ---------------------------------------------------------------------------
 function CurrentUserCard({ entry }: { entry: LeaderboardEntry }) {
+  const { t } = useI18n();
   const percentile = Math.round((entry.rank / 20) * 100);
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="rounded-2xl bg-gradient-to-r from-[#252152] to-[#2D2960] border border-[#06B6D4]/20 p-4 mb-6 text-white"
+      className="rounded-2xl bg-white/[0.07] backdrop-blur-md border border-[#06B6D4]/20 p-4 mb-6 text-white shadow-lg shadow-[#06B6D4]/5"
     >
       <div className="text-[11px] text-[#06B6D4] uppercase tracking-wider font-semibold mb-2">
-        Your Ranking
+        {t("leaderboard.yourRanking")}
       </div>
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
@@ -159,9 +162,9 @@ function CurrentUserCard({ entry }: { entry: LeaderboardEntry }) {
             <div className="font-semibold text-sm">{entry.display_name}</div>
             <div className="flex items-center gap-1 text-[11px] text-[#94A3B8] mt-0.5">
               <Flame className="h-3 w-3" />
-              <span>{entry.streak}-day streak</span>
+              <span>{t("leaderboard.dayStreak").replace("{n}", String(entry.streak))}</span>
               <span className="mx-1 opacity-40">·</span>
-              <span>{entry.total_correct} correct</span>
+              <span>{entry.total_correct} {t("leaderboard.correct")}</span>
             </div>
           </div>
         </div>
@@ -169,7 +172,7 @@ function CurrentUserCard({ entry }: { entry: LeaderboardEntry }) {
           <div className="text-sm font-bold text-[#06B6D4]">
             {entry.accuracy}%
           </div>
-          <div className="text-[11px] text-[#94A3B8]">Top {percentile}%</div>
+          <div className="text-[11px] text-[#94A3B8]">{t("leaderboard.top").replace("{n}", String(percentile))}</div>
         </div>
       </div>
     </motion.div>
@@ -181,8 +184,38 @@ function CurrentUserCard({ entry }: { entry: LeaderboardEntry }) {
 // ---------------------------------------------------------------------------
 export function LeaderboardScreen() {
   const { t } = useI18n();
+  const { walletAddress, authToken } = useApp();
   const [period, setPeriod] = useState<LeaderboardPeriod>("weekly");
-  const entries = DEMO_LEADERBOARD[period];
+  const [apiEntries, setApiEntries] = useState<LeaderboardEntry[] | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function fetchLeaderboard() {
+      setIsLoading(true);
+      try {
+        const params = new URLSearchParams({ period });
+        const headers: Record<string, string> = {};
+        if (authToken) headers.authorization = `Bearer ${authToken}`;
+        const res = await fetch(`/api/leaderboard?${params}`, { headers });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const json = await res.json();
+        if (!cancelled && json.entries?.length > 0) {
+          setApiEntries(json.entries);
+        }
+      } catch {
+        // Fall back to demo data
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    }
+    fetchLeaderboard();
+    return () => { cancelled = true; };
+  }, [period, walletAddress, authToken]);
+
+  // Authenticated users: show only API data (no demo placeholders).
+  // Unauthenticated/preview: fall back to demo data so the screen isn't empty.
+  const entries = apiEntries ?? (walletAddress ? [] : DEMO_LEADERBOARD[period]);
   const currentUserEntry = entries.find((e) => e.is_current_user);
 
   return (
@@ -201,10 +234,10 @@ export function LeaderboardScreen() {
           <button
             key={key}
             onClick={() => setPeriod(key)}
-            className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-all active:scale-95 ${
+            className={`flex-1 py-2.5 rounded-xl text-[13px] font-semibold transition-all active:scale-95 ${
               period === key
-                ? "bg-[#06B6D4] text-white"
-                : "bg-[#252152] text-[#94A3B8]"
+                ? "bg-[#06B6D4]/20 text-[#06B6D4] border border-[#06B6D4]/30"
+                : "bg-white/[0.04] text-[#94A3B8] border border-white/[0.06]"
             }`}
           >
             {t(labelKey)}
@@ -220,21 +253,21 @@ export function LeaderboardScreen() {
         {entries.slice(0, 3).map((entry) => (
           <div
             key={entry.rank}
-            className={`rounded-2xl p-3 text-center ${
+            className={`rounded-2xl p-3 text-center backdrop-blur-sm border ${
               entry.rank === 1
-                ? "bg-[rgb(255,174,0)]/10"
+                ? "bg-[rgb(255,174,0)]/[0.08] border-[rgb(255,174,0)]/20"
                 : entry.rank === 2
-                  ? "bg-[#9BA3AE]/10"
-                  : "bg-[#CD7F32]/10"
+                  ? "bg-[#9BA3AE]/[0.08] border-[#9BA3AE]/15"
+                  : "bg-[#CD7F32]/[0.08] border-[#CD7F32]/15"
             }`}
           >
             <Medal
-              className={`h-6 w-6 mx-auto mb-1 ${MEDAL_COLOR[entry.rank]}`}
+              className={`h-5 w-5 mx-auto mb-1.5 ${MEDAL_COLOR[entry.rank]}`}
             />
             <div className="text-[11px] font-bold text-white/90 truncate">
               {entry.display_name}
             </div>
-            <div className="text-[10px] text-[#94A3B8]">
+            <div className="text-[10px] text-[#94A3B8] font-medium">
               {entry.accuracy}%
             </div>
           </div>

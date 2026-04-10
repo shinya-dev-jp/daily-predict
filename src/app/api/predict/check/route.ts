@@ -1,23 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
+import { authenticateRequest } from "@/lib/auth";
+import { logError } from "@/lib/server-log";
 
 /**
- * GET /api/predict/check?nullifier_hash=...&prediction_id=...
+ * GET /api/predict/check?prediction_id=...
  *
- * Check whether a user has already predicted on a given prediction.
- *
- * Response (200):
- *   { has_predicted: boolean, chosen_option: "A" | "B" | null }
+ * Check whether the authenticated user has already predicted on the given
+ * question. Nullifier is derived from the auth token, never accepted from the
+ * URL — this prevents probing other users' votes.
  */
 export async function GET(req: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url);
-    const nullifier_hash = searchParams.get("nullifier_hash");
-    const prediction_id = searchParams.get("prediction_id");
-
-    if (!nullifier_hash || !prediction_id) {
+    const nullifier_hash = authenticateRequest(req);
+    if (!nullifier_hash) {
       return NextResponse.json(
-        { has_predicted: false, chosen_option: null, error: "Missing parameters" },
+        { has_predicted: false, chosen_option: null, error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    const prediction_id = new URL(req.url).searchParams.get("prediction_id");
+    if (!prediction_id) {
+      return NextResponse.json(
+        { has_predicted: false, chosen_option: null, error: "Missing prediction_id" },
         { status: 400 }
       );
     }
@@ -30,7 +36,7 @@ export async function GET(req: NextRequest) {
       .maybeSingle();
 
     if (error) {
-      console.error("[api/predict/check] Error:", error);
+      logError("api/predict/check", "select failed", { code: error.code });
       return NextResponse.json(
         { has_predicted: false, chosen_option: null },
         { status: 500 }
@@ -42,7 +48,9 @@ export async function GET(req: NextRequest) {
       chosen_option: data?.chosen_option ?? null,
     });
   } catch (err) {
-    console.error("[api/predict/check] Unexpected error:", err);
+    logError("api/predict/check", "unexpected error", {
+      error: err instanceof Error ? err.message : String(err),
+    });
     return NextResponse.json(
       { has_predicted: false, chosen_option: null, error: "Internal server error" },
       { status: 500 }
