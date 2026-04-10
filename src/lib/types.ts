@@ -20,6 +20,14 @@ export interface Prediction {
   question_en: string;
   /** Japanese question text */
   question_ja: string;
+  /** Spanish question text */
+  question_es?: string;
+  /** Korean question text */
+  question_ko?: string;
+  /** Thai question text */
+  question_th?: string;
+  /** Portuguese question text */
+  question_pt?: string;
   /** English label for option A */
   option_a: string;
   /** English label for option B */

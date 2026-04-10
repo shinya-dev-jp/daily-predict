@@ -89,6 +89,8 @@
   "verify.notInWorldApp": "World App에서 이 앱을 열어 지갑으로 로그인해 주세요.",
   "verify.footer": "World 지갑으로 로그인 — 한 사람, 한 표",
 
+  "predict.verifiedOnly": "인증된 인간만",
+
   "category.crypto": "암호화폐",
   "category.sports": "스포츠",
   "category.weather": "날씨",

@@ -89,6 +89,8 @@
   "verify.notInWorldApp": "World App の中でこのアプリを開いてサインインしてください。",
   "verify.footer": "World ウォレットでサインイン — 1人1票",
 
+  "predict.verifiedOnly": "認証済み人間のみ",
+
   "category.crypto": "仮想通貨",
   "category.sports": "スポーツ",
   "category.weather": "天気",

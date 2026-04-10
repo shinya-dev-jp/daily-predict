@@ -89,6 +89,8 @@
   "verify.notInWorldApp": "กรุณาเปิดแอปนี้ใน World App เพื่อเข้าสู่ระบบด้วยกระเป๋าเงิน",
   "verify.footer": "เข้าสู่ระบบด้วยกระเป๋า World — หนึ่งคน หนึ่งโหวต",
 
+  "predict.verifiedOnly": "เฉพาะมนุษย์ที่ยืนยันแล้ว",
+
   "category.crypto": "คริปโต",
   "category.sports": "กีฬา",
   "category.weather": "สภาพอากาศ",

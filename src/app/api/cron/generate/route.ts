@@ -93,10 +93,10 @@ Requirements:
 - The question must be answerable with "Yes" or "No"
 - It should be interesting and engaging
 - It should be about something that will be resolved by tomorrow
-- Provide the question in English, Japanese, and Spanish
+- Provide the question in English, Japanese, Spanish, Korean, Thai, and Portuguese
 
 Respond ONLY with valid JSON in this exact format (no markdown, no explanation):
-{"question_en": "Will X happen by tomorrow?", "question_ja": "明日までにXは起こると思う？", "question_es": "¿Sucederá X mañana?", "option_a": "Yes", "option_b": "No"}`;
+{"question_en": "Will X happen by tomorrow?", "question_ja": "明日までにXは起こると思う？", "question_es": "¿Sucederá X mañana?", "question_ko": "내일까지 X가 일어날까요?", "question_th": "X จะเกิดขึ้นภายในพรุ่งนี้ไหม?", "question_pt": "X vai acontecer até amanhã?", "option_a": "Yes", "option_b": "No"}`;
 
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -136,7 +136,7 @@ Respond ONLY with valid JSON in this exact format (no markdown, no explanation):
     const claudeResponse = await response.json();
     const textContent = claudeResponse.content?.[0]?.text ?? "";
 
-    let parsed: { question_en: string; question_ja: string; option_a: string; option_b: string };
+    let parsed: { question_en: string; question_ja: string; question_es?: string; question_ko?: string; question_th?: string; question_pt?: string; option_a: string; option_b: string };
     try {
       parsed = JSON.parse(textContent);
     } catch {
@@ -168,6 +168,10 @@ Respond ONLY with valid JSON in this exact format (no markdown, no explanation):
       .insert({
         question_en: parsed.question_en,
         question_ja: parsed.question_ja,
+        question_es: parsed.question_es ?? parsed.question_en,
+        question_ko: parsed.question_ko ?? parsed.question_en,
+        question_th: parsed.question_th ?? parsed.question_en,
+        question_pt: parsed.question_pt ?? parsed.question_en,
         option_a: parsed.option_a,
         option_b: parsed.option_b,
         category,
@@ -176,7 +180,7 @@ Respond ONLY with valid JSON in this exact format (no markdown, no explanation):
         vote_count: 0,
         option_a_votes: 0,
       })
-      .select("id, question_en, question_ja, category")
+      .select("id, question_en, question_ja, question_es, question_ko, question_th, question_pt, category")
       .single();
 
     if (insertErr) {
@@ -208,36 +212,54 @@ function generateFallbackQuestion() {
       question_en: "Will Bitcoin go up tomorrow?",
       question_ja: "明日、ビットコインの価格は上がると思う？",
       question_es: "¿Subirá el precio de Bitcoin mañana?",
+      question_ko: "내일 비트코인 가격이 오를까요?",
+      question_th: "ราคา Bitcoin จะขึ้นพรุ่งนี้ไหม?",
+      question_pt: "O Bitcoin vai subir amanhã?",
       category: "crypto",
     },
     {
       question_en: "Will the US stock market go up today?",
       question_ja: "今日、アメリカの株式市場は上がると思う？",
       question_es: "¿Subirá la bolsa de EE.UU. hoy?",
+      question_ko: "오늘 미국 주식시장이 오를까요?",
+      question_th: "ตลาดหุ้นสหรัฐจะขึ้นวันนี้ไหม?",
+      question_pt: "A bolsa dos EUA vai subir hoje?",
       category: "world",
     },
     {
       question_en: "Will it rain in Tokyo tomorrow?",
       question_ja: "明日、東京で雨は降ると思う？",
       question_es: "¿Lloverá en Tokio mañana?",
+      question_ko: "내일 도쿄에 비가 올까요?",
+      question_th: "พรุ่งนี้ฝนจะตกที่โตเกียวไหม?",
+      question_pt: "Vai chover em Tóquio amanhã?",
       category: "weather",
     },
     {
       question_en: "Will a big tech company make AI news today?",
       question_ja: "今日、大手テック企業からAI関連のニュースが出ると思う？",
       question_es: "¿Alguna gran empresa tech dará noticias de IA hoy?",
+      question_ko: "오늘 대형 테크 기업이 AI 뉴스를 발표할까요?",
+      question_th: "บริษัทเทคใหญ่จะมีข่าว AI วันนี้ไหม?",
+      question_pt: "Alguma grande empresa de tech vai anunciar novidades de IA hoje?",
       category: "tech",
     },
     {
       question_en: "Will the Champions League favorite win this week?",
       question_ja: "今週、チャンピオンズリーグの優勝候補は勝つと思う？",
       question_es: "¿Ganará el favorito de la Champions League esta semana?",
+      question_ko: "이번 주 챔피언스리그 우승 후보가 이길까요?",
+      question_th: "ทีมเต็งแชมเปียนส์ลีกจะชนะสัปดาห์นี้ไหม?",
+      question_pt: "O favorito da Champions League vai vencer esta semana?",
       category: "sports",
     },
     {
       question_en: "Will this week's #1 movie stay at the top next week?",
       question_ja: "今週の映画ランキング1位は、来週も1位をキープすると思う？",
       question_es: "¿La película #1 de esta semana seguirá en el primer lugar la próxima?",
+      question_ko: "이번 주 1위 영화가 다음 주에도 1위를 유지할까요?",
+      question_th: "หนังอันดับ 1 สัปดาห์นี้จะยังอยู่อันดับ 1 สัปดาห์หน้าไหม?",
+      question_pt: "O filme #1 desta semana vai continuar no topo na próxima?",
       category: "entertainment",
     },
   ];
@@ -249,7 +271,10 @@ function generateFallbackQuestion() {
   return {
     question_en: chosen.question_en,
     question_ja: chosen.question_ja,
-    question_es: (chosen as Record<string, string>).question_es ?? chosen.question_en,
+    question_es: chosen.question_es,
+    question_ko: chosen.question_ko,
+    question_th: chosen.question_th,
+    question_pt: chosen.question_pt,
     option_a: "Yes",
     option_b: "No",
     category: chosen.category,

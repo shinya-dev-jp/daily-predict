@@ -309,10 +309,15 @@ export function PredictScreen({
   const { t, locale: i18nLocale } = useI18n();
 
   const effectiveLocale = locale ?? i18nLocale;
-  const question =
-    effectiveLocale === "ja" ? prediction.question_ja
-    : effectiveLocale === "es" ? ((prediction as unknown as Record<string, string>).question_es ?? prediction.question_en)
-    : prediction.question_en;
+  const questionByLocale: Record<string, string | undefined> = {
+    en: prediction.question_en,
+    ja: prediction.question_ja,
+    es: prediction.question_es,
+    ko: prediction.question_ko,
+    th: prediction.question_th,
+    pt: prediction.question_pt,
+  };
+  const question = questionByLocale[effectiveLocale] || prediction.question_en;
   const isClosed = prediction.status !== "open";
 
   function handleVote(option: "A" | "B") {
@@ -356,7 +361,7 @@ export function PredictScreen({
             <div className="flex justify-center">
               <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/[0.06] backdrop-blur-sm border border-white/[0.1] text-[10px] font-semibold text-white/50 uppercase tracking-wider">
                 <Shield className="h-3 w-3 text-[#06B6D4]" />
-                Verified Humans Only
+                {t("predict.verifiedOnly")}
               </span>
             </div>
 

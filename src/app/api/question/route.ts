@@ -27,7 +27,7 @@ export async function GET() {
     const { data: todayRow, error: todayErr } = await supabaseAdmin
       .from("predictions")
       .select(
-        "id, question_en, question_ja, question_es, option_a, option_b, category, status, closes_at, result, vote_count, option_a_votes, created_at"
+        "id, question_en, question_ja, question_es, question_ko, question_th, question_pt, option_a, option_b, category, status, closes_at, result, vote_count, option_a_votes, created_at"
       )
       .in("status", ["open", "closed"])
       .gte("closes_at", new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString()) // within last 24 h
@@ -52,7 +52,7 @@ export async function GET() {
     const { data: yesterdayRow, error: yesterdayErr } = await supabaseAdmin
       .from("predictions")
       .select(
-        "id, question_en, question_ja, question_es, option_a, option_b, category, status, closes_at, result, vote_count, option_a_votes, created_at"
+        "id, question_en, question_ja, question_es, question_ko, question_th, question_pt, option_a, option_b, category, status, closes_at, result, vote_count, option_a_votes, created_at"
       )
       .eq("status", "resolved")
       .gte("created_at", yesterdayStart.toISOString())
@@ -78,6 +78,9 @@ export async function GET() {
         question_en: row.question_en,
         question_ja: row.question_ja,
         question_es: (row as Record<string, unknown>).question_es ?? null,
+        question_ko: (row as Record<string, unknown>).question_ko ?? null,
+        question_th: (row as Record<string, unknown>).question_th ?? null,
+        question_pt: (row as Record<string, unknown>).question_pt ?? null,
         option_a: row.option_a,
         option_b: row.option_b,
         category: row.category,

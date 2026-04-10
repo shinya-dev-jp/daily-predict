@@ -89,6 +89,8 @@
   "verify.notInWorldApp": "Please open this app inside World App to sign in with your wallet.",
   "verify.footer": "Sign in with your World wallet — one person, one vote",
 
+  "predict.verifiedOnly": "Verified Humans Only",
+
   "category.crypto": "Crypto",
   "category.sports": "Sports",
   "category.weather": "Weather",

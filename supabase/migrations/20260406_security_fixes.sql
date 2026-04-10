@@ -15,6 +15,7 @@ drop policy if exists "up_read_own" on user_predictions;
 -- users_read_all already exists (select using true) — keep it for leaderboard.
 
 -- ── user_predictions: read-only for anon ────────────────────────────────────
+drop policy if exists "up_read_all" on user_predictions;
 create policy "up_read_all"
   on user_predictions for select using (true);
 

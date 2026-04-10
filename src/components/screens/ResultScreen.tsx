@@ -119,10 +119,15 @@ export function ResultScreen({ prediction, userVote, streak = 0 }: ResultScreenP
   const [shareState, setShareState] = useState<"idle" | "shared">("idle");
   const [showDetails, setShowDetails] = useState(false);
 
-  const questionText =
-    locale === "ja" ? prediction.question_ja
-    : locale === "es" ? ((prediction as unknown as Record<string, string>).question_es ?? prediction.question_en)
-    : prediction.question_en;
+  const questionByLocale: Record<string, string | undefined> = {
+    en: prediction.question_en,
+    ja: prediction.question_ja,
+    es: prediction.question_es,
+    ko: prediction.question_ko,
+    th: prediction.question_th,
+    pt: prediction.question_pt,
+  };
+  const questionText = questionByLocale[locale] || prediction.question_en;
 
   const resultOption = prediction.result; // "A" | "B" | null
   const isResolved = resultOption !== null;
@@ -214,7 +219,7 @@ export function ResultScreen({ prediction, userVote, streak = 0 }: ResultScreenP
                 : t("result.resultIsIn")}
             </p>
             <p className="text-[#94A3B8] text-sm">
-              Answer: <span className="text-white/80 font-medium">{resultLabel}</span>
+              {t("result.answer").replace("{label}", resultLabel)} 
             </p>
           </motion.div>
         </div>
@@ -236,30 +241,14 @@ export function ResultScreen({ prediction, userVote, streak = 0 }: ResultScreenP
               <div className="flex items-center gap-2 justify-center">
                 <Users className="h-3.5 w-3.5 text-[#94A3B8]" />
                 <p className="text-[#94A3B8] text-xs text-center">
-                  {didVote ? (
-                    isCorrect ? (
-                      <>
-                        You were in the{" "}
-                        <span className="text-white font-semibold">
-                          {correctPercent}%
-                        </span>{" "}
-                        who got it right
-                      </>
-                    ) : (
-                      <>
-                        <span className="text-white font-semibold">
-                          {correctPercent}%
-                        </span>{" "}
-                        of humans got it right
-                      </>
+                  {didVote && isCorrect ? (
+                    t("result.inPercent").split("{percent}").map((part, i) =>
+                      i === 0 ? <span key={i}>{part}</span> : <span key={i}><span className="text-white font-semibold">{correctPercent}</span>{part}</span>
                     )
                   ) : (
-                    <>
-                      <span className="text-white font-semibold">
-                        {correctPercent}%
-                      </span>{" "}
-                      of humans got it right
-                    </>
+                    t("result.percentGotRight").split("{percent}").map((part, i) =>
+                      i === 0 ? <span key={i}>{part}</span> : <span key={i}><span className="text-white font-semibold">{correctPercent}</span>{part}</span>
+                    )
                   )}
                 </p>
               </div>
@@ -274,7 +263,7 @@ export function ResultScreen({ prediction, userVote, streak = 0 }: ResultScreenP
                 >
                   <TrendingUp className="h-4 w-4 text-[#F59E0B]" />
                   <span className="text-xs font-semibold text-[#F59E0B]">
-                    {streak}-day streak!
+                    {t("result.streakDay").replace("{n}", String(streak))}
                   </span>
                 </motion.div>
               )}
@@ -287,7 +276,7 @@ export function ResultScreen({ prediction, userVote, streak = 0 }: ResultScreenP
                 >
                   <TrendingDown className="h-4 w-4 text-[#94A3B8]" />
                   <span className="text-xs text-[#94A3B8]">
-                    Streak reset — try again today
+                    {t("result.streakReset")}
                   </span>
                 </motion.div>
               )}
@@ -300,7 +289,7 @@ export function ResultScreen({ prediction, userVote, streak = 0 }: ResultScreenP
       <div className="flex items-center justify-center gap-2">
         <div className="h-2 w-2 rounded-full bg-[#00C230]" />
         <span className="text-[#94A3B8] text-xs">
-          {prediction.vote_count.toLocaleString()} humans predicted
+          {t("result.humansPredicted").replace("{count}", prediction.vote_count.toLocaleString())}
         </span>
       </div>
 
