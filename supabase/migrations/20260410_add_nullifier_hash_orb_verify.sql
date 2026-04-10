@@ -35,7 +35,7 @@ alter table user_predictions
 
 -- 5. Add the new Sybil-resistant uniqueness constraint
 alter table user_predictions
-  add constraint uq_up_prediction_nullifier
+  add constraint uq_user_predictions_prediction_nullifier
   unique (prediction_id, nullifier_hash);
 
 -- 6. Index for quick lookups by nullifier
