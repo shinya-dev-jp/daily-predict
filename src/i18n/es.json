@@ -16,6 +16,8 @@
   "predict.strongYes": "Sí fuerte",
   "predict.strongNo": "No fuerte",
   "predict.divided": "Dividido",
+  "predict.beFirst": "¡Sé el primero en predecir!",
+  "predict.noVotesYet": "Aún no hay votos",
   "predict.noQuestion": "La pregunta de hoy llega pronto",
   "predict.noQuestionSub": "Cada día hay una nueva predicción. Vuelve pronto.",
   "predict.streak": "Racha de {n} días",

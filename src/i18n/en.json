@@ -16,6 +16,8 @@
   "predict.strongYes": "Strong Yes",
   "predict.strongNo": "Strong No",
   "predict.divided": "Divided",
+  "predict.beFirst": "Be the first to predict!",
+  "predict.noVotesYet": "No votes yet",
   "predict.noQuestion": "Today's question is coming soon",
   "predict.noQuestionSub": "Check back shortly — a new prediction drops daily.",
   "predict.streak": "{n}-day streak",

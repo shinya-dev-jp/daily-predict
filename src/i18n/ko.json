@@ -16,6 +16,8 @@
   "predict.strongYes": "Yes 우세",
   "predict.strongNo": "No 우세",
   "predict.divided": "박빙",
+  "predict.beFirst": "첫 번째 예측자가 되세요!",
+  "predict.noVotesYet": "아직 투표가 없습니다",
   "predict.noQuestion": "오늘의 질문이 곧 도착합니다",
   "predict.noQuestionSub": "매일 새로운 예측이 등장합니다. 잠시 후 다시 확인해 주세요.",
   "predict.streak": "{n}일 연속",

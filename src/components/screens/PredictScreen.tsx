@@ -389,35 +389,48 @@ export function PredictScreen({
                 {question}
               </h2>
 
-              {/* Vote split bar */}
-              <div className="flex flex-col gap-2 mt-1">
-                <div className="flex h-2.5 w-full rounded-full overflow-hidden bg-white/5">
-                  <div
-                    className="h-full bg-gradient-to-r from-[#06B6D4] to-[#06B6D4]/70 rounded-l-full transition-all duration-700"
-                    style={{ width: `${prediction.option_a_percent}%` }}
-                  />
+              {/* Vote split bar — only shown when there are votes */}
+              {prediction.vote_count > 0 ? (
+                <div className="flex flex-col gap-2 mt-1">
+                  <div className="flex h-2.5 w-full rounded-full overflow-hidden bg-white/5">
+                    <div
+                      className="h-full bg-gradient-to-r from-[#06B6D4] to-[#06B6D4]/70 rounded-l-full transition-all duration-700"
+                      style={{ width: `${prediction.option_a_percent}%` }}
+                    />
+                  </div>
+                  <div className="flex justify-between text-[11px] font-semibold">
+                    <span className="text-[#06B6D4]">{prediction.option_a_percent}% {prediction.option_a}</span>
+                    <span className="text-white/35">{100 - prediction.option_a_percent}% {prediction.option_b}</span>
+                  </div>
                 </div>
-                <div className="flex justify-between text-[11px] font-semibold">
-                  <span className="text-[#06B6D4]">{prediction.option_a_percent}% {prediction.option_a}</span>
-                  <span className="text-white/35">{100 - prediction.option_a_percent}% {prediction.option_b}</span>
+              ) : (
+                <div className="flex items-center justify-center mt-1 py-1.5">
+                  <span className="text-white/30 text-[11px]">{t("predict.beFirst") ?? "Be the first to predict!"}</span>
                 </div>
-              </div>
+              )}
 
               {/* Crowd sentiment */}
               <div className="flex items-center justify-between pt-2 border-t border-white/[0.06]">
                 <div className="flex items-center gap-1.5">
                   <Users className="h-3 w-3 text-white/30" />
-                  <span className="text-[10px] text-white/40">{prediction.vote_count.toLocaleString()} {t("predict.predicted")}</span>
+                  <span className="text-[10px] text-white/40">
+                    {prediction.vote_count > 0
+                      ? `${prediction.vote_count.toLocaleString()} ${t("predict.predicted")}`
+                      : t("predict.noVotesYet") ?? "No votes yet"
+                    }
+                  </span>
                 </div>
-                <span className={`text-[10px] font-semibold ${
-                  prediction.option_a_percent >= 65 ? "text-[#06B6D4]"
-                  : prediction.option_a_percent <= 35 ? "text-[#F59E0B]"
-                  : "text-white/40"
-                }`}>
-                  {prediction.option_a_percent >= 65 ? t("predict.strongYes")
-                   : prediction.option_a_percent <= 35 ? t("predict.strongNo")
-                   : t("predict.divided")}
-                </span>
+                {prediction.vote_count > 0 && (
+                  <span className={`text-[10px] font-semibold ${
+                    prediction.option_a_percent >= 65 ? "text-[#06B6D4]"
+                    : prediction.option_a_percent <= 35 ? "text-[#F59E0B]"
+                    : "text-white/40"
+                  }`}>
+                    {prediction.option_a_percent >= 65 ? t("predict.strongYes")
+                     : prediction.option_a_percent <= 35 ? t("predict.strongNo")
+                     : t("predict.divided")}
+                  </span>
+                )}
               </div>
             </div>
 

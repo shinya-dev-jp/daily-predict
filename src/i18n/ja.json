@@ -16,6 +16,8 @@
   "predict.strongYes": "Yes優勢",
   "predict.strongNo": "No優勢",
   "predict.divided": "拮抗中",
+  "predict.beFirst": "最初の予測者になろう！",
+  "predict.noVotesYet": "まだ投票はありません",
   "predict.noQuestion": "今日の質問はまもなく",
   "predict.noQuestionSub": "毎日新しい予測が登場します。少々お待ちください。",
   "predict.streak": "{n}日連続",

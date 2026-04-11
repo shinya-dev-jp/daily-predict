@@ -16,6 +16,8 @@
   "predict.strongYes": "Yes เด่นชัด",
   "predict.strongNo": "No เด่นชัด",
   "predict.divided": "คะแนนสูสี",
+  "predict.beFirst": "เป็นคนแรกที่ทำนาย!",
+  "predict.noVotesYet": "ยังไม่มีการโหวต",
   "predict.noQuestion": "คำถามวันนี้กำลังมา",
   "predict.noQuestionSub": "กลับมาตรวจสอบอีกครั้ง - มีการทำนายใหม่ทุกวัน",
   "predict.streak": "ต่อเนื่อง {n} วัน",
