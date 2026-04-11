@@ -2,12 +2,20 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 import { authenticateRequest } from "@/lib/auth";
 import { logError } from "@/lib/server-log";
+import {
+  verifyCloudProof,
+  VerificationLevel,
+  type ISuccessResult,
+  type IVerifyResponse,
+} from "@worldcoin/minikit-js";
 
 // ── Worldcoin Incognito Action proof verification ──────────────────────────
-const WORLD_VERIFY_URL = "https://developer.worldcoin.org/api/v2/verify";
+// Uses the official MiniKit SDK's verifyCloudProof to validate the proof,
+// which correctly handles signal hashing and payload formatting.
 
 async function verifyIncognitoAction(
-  verifyPayload: Record<string, unknown>
+  verifyPayload: Record<string, unknown>,
+  signal: string
 ): Promise<{ nullifier_hash: string }> {
   const appId = process.env.NEXT_PUBLIC_WLD_APP_ID;
   const action = process.env.NEXT_PUBLIC_WLD_ACTION ?? "daily-predict-verify";
@@ -16,26 +24,30 @@ async function verifyIncognitoAction(
     throw new Error("Missing NEXT_PUBLIC_WLD_APP_ID");
   }
 
-  const res = await fetch(`${WORLD_VERIFY_URL}/${appId}/${action}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(verifyPayload),
-  });
+  // Construct the proof object expected by verifyCloudProof
+  const proof: ISuccessResult = {
+    merkle_root: verifyPayload.merkle_root as string,
+    nullifier_hash: verifyPayload.nullifier_hash as string,
+    proof: verifyPayload.proof as string,
+    verification_level: (verifyPayload.verification_level as VerificationLevel) ?? VerificationLevel.Orb,
+  };
 
-  const json = await res.json().catch(() => ({}));
+  const verifyRes = (await verifyCloudProof(
+    proof,
+    appId as `app_${string}`,
+    action,
+    signal
+  )) as IVerifyResponse;
 
-  if (!res.ok) {
+  if (!verifyRes.success) {
     throw new Error(
-      `World verify API returned ${res.status}: ${JSON.stringify(json)}`
+      `World verify failed: ${JSON.stringify(verifyRes)}`
     );
   }
 
-  const nullifier =
-    json.nullifier_hash ??
-    (verifyPayload.nullifier_hash as string | undefined);
-
+  const nullifier = proof.nullifier_hash;
   if (!nullifier || typeof nullifier !== "string") {
-    throw new Error("nullifier_hash missing from verify response");
+    throw new Error("nullifier_hash missing from verify payload");
   }
 
   return { nullifier_hash: nullifier };
@@ -94,7 +106,8 @@ export async function POST(req: NextRequest) {
     let nullifier_hash_from_orb: string;
     try {
       const verified = await verifyIncognitoAction(
-        verify_payload as Record<string, unknown>
+        verify_payload as Record<string, unknown>,
+        prediction_id as string
       );
       nullifier_hash_from_orb = verified.nullifier_hash;
     } catch (err) {
