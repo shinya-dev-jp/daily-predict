@@ -111,11 +111,13 @@ export async function POST(req: NextRequest) {
       );
       nullifier_hash_from_orb = verified.nullifier_hash;
     } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : String(err);
       logError("api/predict", "World ID Orb verification failed", {
-        error: err instanceof Error ? err.message : String(err),
+        error: errorMsg,
       });
+      // Include detailed error for debugging (TODO: remove in production)
       return NextResponse.json(
-        { success: false, error: "World ID verification failed" },
+        { success: false, error: `World ID verification failed: ${errorMsg}` },
         { status: 400 }
       );
     }
