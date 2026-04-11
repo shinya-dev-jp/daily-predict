@@ -90,6 +90,7 @@
   "verify.footer": "World 지갑으로 로그인 — 한 사람, 한 표",
 
   "predict.verifiedOnly": "인증된 인간만",
+  "predict.verifying": "World ID로 인증 중...",
 
   "category.crypto": "암호화폐",
   "category.sports": "스포츠",

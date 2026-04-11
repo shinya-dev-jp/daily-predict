@@ -97,8 +97,9 @@ export async function GET() {
       today: toClientPrediction(todayRow),
       yesterday: toClientPrediction(yesterdayRow ?? null),
     });
-    // Cache for 30 seconds to reduce DB hits on page refreshes
-    response.headers.set("Cache-Control", "public, s-maxage=30, stale-while-revalidate=60");
+    // Cache at Vercel edge for 60s, serve stale for up to 5 min while revalidating.
+    // This drastically reduces cold-start latency for most users.
+    response.headers.set("Cache-Control", "public, s-maxage=60, stale-while-revalidate=300");
     return response;
   } catch (err) {
     logError("api/question", "unexpected error", { error: err instanceof Error ? err.message : String(err) });

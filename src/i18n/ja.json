@@ -90,6 +90,7 @@
   "verify.footer": "World ウォレットでサインイン — 1人1票",
 
   "predict.verifiedOnly": "認証済み人間のみ",
+  "predict.verifying": "World IDで認証中...",
 
   "category.crypto": "仮想通貨",
   "category.sports": "スポーツ",

@@ -90,6 +90,7 @@
   "verify.footer": "เข้าสู่ระบบด้วยกระเป๋า World — หนึ่งคน หนึ่งโหวต",
 
   "predict.verifiedOnly": "เฉพาะมนุษย์ที่ยืนยันแล้ว",
+  "predict.verifying": "กำลังยืนยันด้วย World ID...",
 
   "category.crypto": "คริปโต",
   "category.sports": "กีฬา",

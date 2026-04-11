@@ -371,42 +371,29 @@ function DailyPredictApp() {
     return <WalletAuthScreen onAuthSuccess={handleAuthSuccess} />;
   }
 
-  function handleVote(option: "A" | "B") {
-    handlePredict(option)
-      .then(async () => {
-        // Track successful vote
-        const { track } = await import("@/lib/track");
-        track("vote", {
-          user_address: walletAddress,
-          metadata: {
-            option,
-            prediction_id: todayPrediction?.id,
-            category: todayPrediction?.category,
-          },
-        });
+  async function handleVote(option: "A" | "B") {
+    // Let errors propagate up to PredictScreen's try/catch
+    await handlePredict(option);
 
-        // Opportunistic notification opt-in after successful vote.
-        // Users are engaged at this moment → high acceptance rate.
-        // Only asked once per session; the MiniKit SDK handles "already_requested".
-        if (typeof window !== "undefined" && !sessionStorage.getItem("dp_notif_asked")) {
-          sessionStorage.setItem("dp_notif_asked", "1");
-          const { requestNotificationPermission } = await import("@/lib/share");
-          requestNotificationPermission().catch(() => {
-            /* non-fatal */
-          });
-        }
-      })
-      .catch(async (err) => {
-        console.error("Prediction failed:", err);
-        const msg = err?.message ?? "Something went wrong";
-        setToast(msg);
-        setTimeout(() => setToast(null), 3000);
-        const { track } = await import("@/lib/track");
-        track("error", {
-          user_address: walletAddress,
-          metadata: { source: "vote", message: msg },
-        });
+    // Fire-and-forget: post-vote side effects (tracking, notification opt-in)
+    import("@/lib/track").then(({ track }) => {
+      track("vote", {
+        user_address: walletAddress,
+        metadata: {
+          option,
+          prediction_id: todayPrediction?.id,
+          category: todayPrediction?.category,
+        },
       });
+    });
+
+    // Opportunistic notification opt-in after successful vote.
+    if (typeof window !== "undefined" && !sessionStorage.getItem("dp_notif_asked")) {
+      sessionStorage.setItem("dp_notif_asked", "1");
+      import("@/lib/share").then(({ requestNotificationPermission }) => {
+        requestNotificationPermission().catch(() => {/* non-fatal */});
+      });
+    }
   }
 
   return (

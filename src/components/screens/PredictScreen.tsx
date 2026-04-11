@@ -295,7 +295,7 @@ interface PredictScreenProps {
   locale?: string;
   /** Already voted? Pass the chosen option */
   alreadyVoted?: "A" | "B" | null;
-  onVote?: (option: "A" | "B") => void;
+  onVote?: (option: "A" | "B") => Promise<void> | void;
 }
 
 export function PredictScreen({
@@ -306,6 +306,8 @@ export function PredictScreen({
   onVote,
 }: PredictScreenProps) {
   const [chosen, setChosen] = useState<"A" | "B" | null>(alreadyVoted);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [voteError, setVoteError] = useState<string | null>(null);
   const { t, locale: i18nLocale } = useI18n();
 
   const effectiveLocale = locale ?? i18nLocale;
@@ -320,10 +322,22 @@ export function PredictScreen({
   const question = questionByLocale[effectiveLocale] || prediction.question_en;
   const isClosed = prediction.status !== "open";
 
-  function handleVote(option: "A" | "B") {
-    if (chosen || isClosed) return;
-    setChosen(option);
-    onVote?.(option);
+  async function handleVote(option: "A" | "B") {
+    if (chosen || isClosed || isSubmitting) return;
+    setIsSubmitting(true);
+    setVoteError(null);
+    try {
+      await onVote?.(option);
+      // Only show "locked/success" UI after verification + API call succeed
+      setChosen(option);
+    } catch (err) {
+      // Verification failed or API error — stay on vote screen so user can retry
+      const msg = err instanceof Error ? err.message : "Verification failed";
+      setVoteError(msg);
+      console.error("[PredictScreen] Vote failed:", err);
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -409,7 +423,7 @@ export function PredictScreen({
 
             {/* Vote buttons — both cyan glass, no bias */}
             <div
-              className={`flex gap-3 w-full ${isClosed ? "opacity-40 pointer-events-none" : ""}`}
+              className={`flex gap-3 w-full ${isClosed || isSubmitting ? "opacity-40 pointer-events-none" : ""}`}
               role="group"
               aria-label="Vote on today's question"
             >
@@ -417,7 +431,7 @@ export function PredictScreen({
                 whileTap={{ scale: 0.96 }}
                 onClick={() => handleVote("A")}
                 aria-label={`Vote ${prediction.option_a}`}
-                disabled={isClosed}
+                disabled={isClosed || isSubmitting}
                 className="flex-1 py-4 rounded-2xl bg-[#06B6D4]/15 border border-[#06B6D4]/30 text-[#06B6D4] font-bold text-sm active:bg-[#06B6D4]/25 transition-colors cursor-pointer backdrop-blur-sm disabled:cursor-not-allowed"
               >
                 {prediction.option_a}
@@ -426,12 +440,27 @@ export function PredictScreen({
                 whileTap={{ scale: 0.96 }}
                 onClick={() => handleVote("B")}
                 aria-label={`Vote ${prediction.option_b}`}
-                disabled={isClosed}
+                disabled={isClosed || isSubmitting}
                 className="flex-1 py-4 rounded-2xl bg-[#06B6D4]/15 border border-[#06B6D4]/30 text-[#06B6D4] font-bold text-sm active:bg-[#06B6D4]/25 transition-colors cursor-pointer backdrop-blur-sm disabled:cursor-not-allowed"
               >
                 {prediction.option_b}
               </motion.button>
             </div>
+
+            {/* Submitting indicator */}
+            {isSubmitting && (
+              <div className="flex items-center justify-center gap-2 py-2">
+                <div className="h-4 w-4 border-2 border-[#06B6D4] border-t-transparent rounded-full animate-spin" />
+                <span className="text-[#06B6D4] text-xs font-medium">{t("predict.verifying") ?? "Verifying with World ID..."}</span>
+              </div>
+            )}
+
+            {/* Error message */}
+            {voteError && !isSubmitting && (
+              <div className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-red-500/10 border border-red-500/20">
+                <span className="text-red-400 text-xs font-medium text-center">{voteError}</span>
+              </div>
+            )}
 
             {/* Fine print */}
             <p className="text-white/25 text-[11px] mt-0.5 text-center">

@@ -90,6 +90,7 @@
   "verify.footer": "Inicia sesión con tu wallet de World — una persona, un voto",
 
   "predict.verifiedOnly": "Solo Humanos Verificados",
+  "predict.verifying": "Verificando con World ID...",
 
   "category.crypto": "Cripto",
   "category.sports": "Deportes",
