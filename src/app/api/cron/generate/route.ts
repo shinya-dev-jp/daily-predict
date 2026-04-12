@@ -12,7 +12,8 @@ import { logError } from "@/lib/server-log";
  * Requires CRON_SECRET header for authentication.
  */
 
-const CATEGORIES = ["crypto", "weather", "sports", "tech", "world", "entertainment"] as const;
+// Only categories whose outcomes are self-evidently verifiable (price charts, scoreboard)
+const CATEGORIES = ["crypto", "stocks", "sports"] as const;
 
 /**
  * Vercel Cron sends GET requests. Accept both GET and POST.
@@ -85,40 +86,35 @@ async function handleGenerate(req: NextRequest) {
     const category = CATEGORIES[Math.floor(Math.random() * CATEGORIES.length)];
     const today = jstDateString();
 
-    const prompt = `You are generating questions for a daily prediction game where users bet their intuition. The best questions feel like exciting micro-bets — they have real stakes, concrete verifiable outcomes, and make people WANT to check back tomorrow.
+    const prompt = `You are generating questions for a daily prediction game. The best questions create an "aha! I was right!" moment — users should be able to check the result themselves without any research, just by glancing at a price chart or a scoreboard.
 
 Date: ${today}
 Category: ${category}
 
+## CORE PRINCIPLE
+The result must be self-evident. A user who checks tomorrow should immediately know if they were right — no counting, no searching, no interpretation needed.
+
 ## ABSOLUTE REQUIREMENTS (violating any = instant rejection)
-1. Every question MUST contain at least one proper noun (team name, person name, company name, city name, etc.)
-2. Every question MUST contain a concrete threshold or specific event (a number, a score, a date, or a named event)
-3. The outcome MUST be objectively verifiable with a simple Google search
-4. NEVER use vague terms like: "favorite", "top team", "popular", "leading candidate", "優勝候補", "有名人", "人気", "トップ", "注目の"
+1. Every question MUST name a specific entity: exact coin ticker, exact team names, or exact stock ticker
+2. Every question MUST have a single binary outcome with a concrete threshold (a price level, or a win/loss)
+3. The result MUST be verifiable by anyone within 24 hours by checking a public source (exchange chart, official scoreboard)
+4. NEVER use: "celebrity", "famous person", "popular", "a team", "someone", "有名人", "著名人", "人気の", "誰か", "あるチーム"
 
 ## Category-specific rules
-- crypto: MUST include coin ticker AND price level (e.g., "BTC above $85,000")
-- sports: MUST include BOTH team names or a specific athlete name AND the event name
-- tech: MUST include company name AND specific product/event
-- world: MUST include country/leader name AND specific policy/event
-- entertainment: MUST include artist/movie name AND specific metric
-- weather: MUST include city name AND temperature/condition
+- crypto: MUST include coin ticker (BTC/ETH/SOL etc.) AND exact price threshold (e.g., "BTC closes above $85,000 today")
+- stocks: MUST include stock ticker (AAPL/NVDA/TSLA etc.) AND specific comparison (e.g., "AAPL closes higher than yesterday")
+- sports: MUST include BOTH team names AND the specific match/event (e.g., "Real Madrid vs Arsenal in the UCL quarterfinal")
 
 ## Examples
-BAD: "Will the Champions League favorite win this week?" (WHO is the favorite?)
-GOOD: "Will Real Madrid beat Arsenal in the Champions League quarterfinal this week?"
-
-BAD: "Will Bitcoin go up tomorrow?" (no threshold)
+BAD: "Will a famous player score today?" → who? can't verify instantly
+BAD: "Will crypto go up?" → which one? no threshold
+BAD: "Will a celebrity get 1M likes?" → who? 1 post or total?
 GOOD: "Will Bitcoin (BTC) close above $85,000 today?"
+GOOD: "Will Apple (AAPL) close higher than yesterday's price?"
+GOOD: "Will Real Madrid beat Arsenal in the Champions League quarterfinal?"
 
-BAD: "Will a popular tech company release something new?" (which company? what product?)
-GOOD: "Will Apple announce a new iPhone SE this week?"
-
-BAD: "Will a celebrity post go viral?" (which celebrity?)
-GOOD: "Will Elon Musk post on X more than 20 times today?"
-
-Respond ONLY with valid JSON in this exact format (no markdown, no explanation):
-{"question_en": "Will X happen by tomorrow?", "question_ja": "明日までにXは起こる？", "question_es": "¿Sucederá X mañana?", "question_ko": "내일까지 X가 일어날까요?", "question_th": "X จะเกิดขึ้นภายในพรุ่งนี้ไหม?", "question_pt": "X vai acontecer até amanhã?", "option_a": "Yes", "option_b": "No"}`;
+Respond ONLY with valid JSON (no markdown, no explanation):
+{"question_en": "Will X happen?", "question_ja": "Xは起こる？", "question_es": "¿Sucederá X?", "question_ko": "X가 일어날까요?", "question_th": "X จะเกิดขึ้นไหม?", "question_pt": "X vai acontecer?", "option_a": "Yes", "option_b": "No"}`;
 
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -304,10 +300,11 @@ function detectVagueQuestion(questionEn: string, questionJa: string): string | n
 function generateFallbackQuestion() {
   const closesAt = todaysCloseAt();
 
+  // All fallbacks use only crypto/stocks/sports — outcomes verifiable by price chart or scoreboard
   const fallbacks = [
     {
       question_en: "Will Bitcoin (BTC) close above $83,000 today?",
-      question_ja: "今日、ビットコイン（BTC）は$83,000より高い価格でクロースすると思う？",
+      question_ja: "今日、ビットコイン（BTC）は$83,000超えでクローズすると思う？",
       question_es: "¿Cerrará Bitcoin (BTC) por encima de $83,000 hoy?",
       question_ko: "오늘 비트코인(BTC)이 $83,000 이상으로 마감될까요?",
       question_th: "Bitcoin (BTC) จะปิดเหนือ $83,000 วันนี้ไหม?",
@@ -324,22 +321,40 @@ function generateFallbackQuestion() {
       category: "crypto",
     },
     {
-      question_en: "Will the S&P 500 end today in the green?",
+      question_en: "Will Solana (SOL) close higher than yesterday?",
+      question_ja: "今日、ソラナ（SOL）は昨日より高い価格でクローズすると思う？",
+      question_es: "¿Cerrará Solana (SOL) más alto que ayer?",
+      question_ko: "오늘 솔라나(SOL)가 어제보다 높게 마감될까요?",
+      question_th: "Solana (SOL) จะปิดสูงกว่าเมื่อวานนี้ไหม?",
+      question_pt: "O Solana (SOL) vai fechar mais alto do que ontem?",
+      category: "crypto",
+    },
+    {
+      question_en: "Will the S&P 500 close in the green today?",
       question_ja: "今日、S&P 500はプラスで終わると思う？",
       question_es: "¿Cerrará el S&P 500 en verde hoy?",
       question_ko: "오늘 S&P 500이 상승 마감할까요?",
       question_th: "S&P 500 จะปิดในแดนบวกวันนี้ไหม?",
       question_pt: "O S&P 500 vai fechar no verde hoje?",
-      category: "world",
+      category: "stocks",
     },
     {
-      question_en: "Will OpenAI announce a new product this week?",
-      question_ja: "今週、OpenAIが新製品を発表すると思う？",
-      question_es: "¿Anunciará OpenAI un nuevo producto esta semana?",
-      question_ko: "이번 주 OpenAI가 새 제품을 발표할까요?",
-      question_th: "OpenAI จะประกาศผลิตภัณฑ์ใหม่สัปดาห์นี้ไหม?",
-      question_pt: "A OpenAI vai anunciar um novo produto esta semana?",
-      category: "tech",
+      question_en: "Will Apple (AAPL) close higher than yesterday?",
+      question_ja: "今日の終値、Apple（AAPL）は昨日より上がると思う？",
+      question_es: "¿Cerrará Apple (AAPL) más alto que ayer?",
+      question_ko: "오늘 애플(AAPL)이 어제보다 높게 마감될까요?",
+      question_th: "Apple (AAPL) จะปิดสูงกว่าเมื่อวานนี้ไหม?",
+      question_pt: "A Apple (AAPL) vai fechar mais alta do que ontem?",
+      category: "stocks",
+    },
+    {
+      question_en: "Will NVIDIA (NVDA) close higher than yesterday?",
+      question_ja: "今日の終値、NVIDIA（NVDA）は昨日より上がると思う？",
+      question_es: "¿Cerrará NVIDIA (NVDA) más alto que ayer?",
+      question_ko: "오늘 엔비디아(NVDA)가 어제보다 높게 마감될까요?",
+      question_th: "NVIDIA (NVDA) จะปิดสูงกว่าเมื่อวานนี้ไหม?",
+      question_pt: "A NVIDIA (NVDA) vai fechar mais alta do que ontem?",
+      category: "stocks",
     },
     {
       question_en: "Will Real Madrid win their next Champions League match?",
@@ -351,31 +366,13 @@ function generateFallbackQuestion() {
       category: "sports",
     },
     {
-      question_en: "Will Elon Musk post more than 20 times on X today?",
-      question_ja: "今日、イーロン・マスクはXに20回以上投稿すると思う？",
-      question_es: "¿Publicará Elon Musk más de 20 veces en X hoy?",
-      question_ko: "오늘 일론 머스크가 X에 20번 이상 게시할까요?",
-      question_th: "Elon Musk จะโพสต์ X มากกว่า 20 ครั้งวันนี้ไหม?",
-      question_pt: "Elon Musk vai postar mais de 20 vezes no X hoje?",
-      category: "entertainment",
-    },
-    {
-      question_en: "Will Donald Trump post more than 10 times on Truth Social today?",
-      question_ja: "今日、ドナルド・トランプはTruth Socialに10回以上投稿すると思う？",
-      question_es: "¿Publicará Donald Trump más de 10 veces en Truth Social hoy?",
-      question_ko: "오늘 도널드 트럼프가 Truth Social에 10번 이상 게시할까요?",
-      question_th: "Donald Trump จะโพสต์ Truth Social มากกว่า 10 ครั้งวันนี้ไหม?",
-      question_pt: "Donald Trump vai postar mais de 10 vezes no Truth Social hoje?",
-      category: "world",
-    },
-    {
-      question_en: "Will Apple's stock (AAPL) rise by end of today's trading?",
-      question_ja: "今日の取引終了時にAppleの株価（AAPL）は上昇していると思う？",
-      question_es: "¿Subirá la acción de Apple (AAPL) al cierre de hoy?",
-      question_ko: "오늘 거래 종료 시 애플 주식(AAPL)이 상승할까요?",
-      question_th: "หุ้น Apple (AAPL) จะปิดสูงขึ้นเมื่อสิ้นสุดการซื้อขายวันนี้ไหม?",
-      question_pt: "A ação da Apple (AAPL) vai subir ao final do pregão hoje?",
-      category: "tech",
+      question_en: "Will the NBA game tonight end with a margin of 10+ points?",
+      question_ja: "今夜のNBAの試合は10点差以上の結果になると思う？",
+      question_es: "¿El partido de NBA de esta noche terminará con una diferencia de 10+ puntos?",
+      question_ko: "오늘 밤 NBA 경기가 10점 이상 차이로 끝날까요?",
+      question_th: "เกม NBA คืนนี้จะจบด้วยคะแนนห่างกัน 10+ แต้มไหม?",
+      question_pt: "O jogo de NBA de hoje à noite vai terminar com uma diferença de 10+ pontos?",
+      category: "sports",
     },
   ];
 
