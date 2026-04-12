@@ -101,6 +101,9 @@
   "category.world": "โลก",
   "category.entertainment": "บันเทิง",
 
+  "wld.ifCorrect": "ทายถูกได้ +0.001 WLD",
+  "wld.comingSoon": "เร็วๆ นี้",
+
   "rewards.comingSoon": "เร็วๆ นี้",
   "rewards.title": "รางวัลล็อกอินรายสัปดาห์",
   "rewards.subtitle": "รับ WLD เพียงแค่เข้ามาทุกวัน",

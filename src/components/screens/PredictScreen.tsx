@@ -18,6 +18,8 @@ import {
   Cpu,
   Globe,
   Clapperboard,
+  Zap,
+  Coins,
 } from "lucide-react";
 import type { Prediction, UserProfile } from "@/lib/types";
 import { CATEGORY_META } from "@/data/demo-predictions";
@@ -180,6 +182,20 @@ function LockedState({
       >
         {isA ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
         <span>{t("locked.youSaid").replace("{label}", label)}</span>
+      </motion.div>
+
+      {/* WLD Reward teaser */}
+      <motion.div
+        initial={{ y: 12, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.4 }}
+        className="w-full flex items-center justify-between px-4 py-3 rounded-2xl bg-gradient-to-r from-[#F59E0B]/10 to-[#F59E0B]/5 border border-[#F59E0B]/20"
+      >
+        <div className="flex items-center gap-2">
+          <Coins className="h-4 w-4 text-[#F59E0B]" />
+          <span className="text-[#F59E0B] text-xs font-semibold">{t("wld.ifCorrect")}</span>
+        </div>
+        <span className="text-[10px] text-[#F59E0B]/60 font-medium px-2 py-0.5 rounded-full border border-[#F59E0B]/20">{t("wld.comingSoon")}</span>
       </motion.div>
 
       {/* Live vote split */}

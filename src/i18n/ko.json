@@ -101,6 +101,9 @@
   "category.world": "세계",
   "category.entertainment": "엔터테인먼트",
 
+  "wld.ifCorrect": "정답 시 +0.001 WLD",
+  "wld.comingSoon": "출시 예정",
+
   "rewards.comingSoon": "출시 예정",
   "rewards.title": "주간 로그인 보상",
   "rewards.subtitle": "매일 참여하기만 해도 WLD 획득",

@@ -101,6 +101,9 @@
   "category.world": "World",
   "category.entertainment": "エンタメ",
 
+  "wld.ifCorrect": "正解で +0.001 WLD",
+  "wld.comingSoon": "近日公開",
+
   "rewards.comingSoon": "近日公開",
   "rewards.title": "週次ログイン報酬",
   "rewards.subtitle": "毎日参加するだけで WLD を獲得",

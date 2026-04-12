@@ -2,16 +2,28 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 import { authenticateRequest } from "@/lib/auth";
 import { logError } from "@/lib/server-log";
-import {
-  verifyCloudProof,
-  VerificationLevel,
-  type ISuccessResult,
-  type IVerifyResponse,
-} from "@worldcoin/minikit-js";
+import { hashSignal } from "@worldcoin/idkit-core/hashing";
 
-// ── Worldcoin Incognito Action proof verification ──────────────────────────
-// Uses the official MiniKit SDK's verifyCloudProof to validate the proof,
-// which correctly handles signal hashing and payload formatting.
+// ── Worldcoin proof verification via v4 API ─────────────────────────────────
+// The old v2 endpoint (developer.worldcoin.org/api/v2/verify) has been
+// deprecated and returns "Action not found".  We now call the v4 endpoint
+// directly with the legacy proof format.
+
+interface VerifyV4Response {
+  success: boolean;
+  action?: string;
+  nullifier?: string;
+  results?: Array<{
+    identifier: string;
+    success: boolean;
+    nullifier?: string;
+    code?: string;
+    detail?: string;
+  }>;
+  code?: string;
+  detail?: string;
+  message?: string;
+}
 
 async function verifyIncognitoAction(
   verifyPayload: Record<string, unknown>,
@@ -24,30 +36,42 @@ async function verifyIncognitoAction(
     throw new Error("Missing NEXT_PUBLIC_WLD_APP_ID");
   }
 
-  // Construct the proof object expected by verifyCloudProof
-  const proof: ISuccessResult = {
-    merkle_root: verifyPayload.merkle_root as string,
-    nullifier_hash: verifyPayload.nullifier_hash as string,
-    proof: verifyPayload.proof as string,
-    verification_level: (verifyPayload.verification_level as VerificationLevel) ?? VerificationLevel.Orb,
-  };
-
-  const verifyRes = (await verifyCloudProof(
-    proof,
-    appId as `app_${string}`,
-    action,
-    signal
-  )) as IVerifyResponse;
-
-  if (!verifyRes.success) {
-    throw new Error(
-      `World verify failed: ${JSON.stringify(verifyRes)}`
-    );
-  }
-
-  const nullifier = proof.nullifier_hash;
+  const nullifier = verifyPayload.nullifier_hash as string;
   if (!nullifier || typeof nullifier !== "string") {
     throw new Error("nullifier_hash missing from verify payload");
+  }
+
+  const signal_hash = hashSignal(signal);
+
+  const identifier =
+    verifyPayload.verification_level === "device" ? "device" : "orb";
+
+  const response = await fetch(
+    `https://developer.world.org/api/v4/verify/${appId}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        protocol_version: "3.0",
+        nonce: signal_hash,
+        action,
+        responses: [
+          {
+            identifier,
+            merkle_root: verifyPayload.merkle_root as string,
+            nullifier,
+            proof: verifyPayload.proof as string,
+            signal_hash,
+          },
+        ],
+      }),
+    }
+  );
+
+  const data: VerifyV4Response = await response.json();
+
+  if (!response.ok || !data.success) {
+    throw new Error(`World verify failed: ${JSON.stringify(data)}`);
   }
 
   return { nullifier_hash: nullifier };

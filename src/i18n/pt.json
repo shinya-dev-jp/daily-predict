@@ -101,6 +101,9 @@
   "category.world": "Mundo",
   "category.entertainment": "Entretenimento",
 
+  "wld.ifCorrect": "+0.001 WLD se acertar",
+  "wld.comingSoon": "Em Breve",
+
   "rewards.comingSoon": "Em Breve",
   "rewards.title": "Recompensas Semanais de Login",
   "rewards.subtitle": "Ganhe WLD só por aparecer todos os dias",
