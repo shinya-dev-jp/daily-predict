@@ -101,16 +101,22 @@ The result must be self-evident. A user who checks tomorrow should immediately k
 4. NEVER use: "celebrity", "famous person", "popular", "a team", "someone", "有名人", "著名人", "人気の", "誰か", "あるチーム"
 
 ## Category-specific rules
-- crypto: MUST include coin ticker (BTC/ETH/SOL etc.) AND exact price threshold (e.g., "BTC closes above $85,000 today")
-- stocks: MUST include stock ticker (AAPL/NVDA/TSLA etc.) AND specific comparison (e.g., "AAPL closes higher than yesterday")
-- sports: MUST include BOTH team names AND the specific match/event (e.g., "Real Madrid vs Arsenal in the UCL quarterfinal")
+- crypto: coin ticker + comparison to 24h-ago price OR a round-number threshold (e.g., "BTC higher than 24h ago", "BTC above $85,000")
+- stocks: stock ticker + comparison to previous close (e.g., "AAPL closes higher than previous close") — avoid "today/yesterday" since market timezones differ
+- sports: BOTH team names + specific match/event name (e.g., "Real Madrid vs Arsenal in the UCL quarterfinal") — result is on the scoreboard
+
+## Timezone rule
+NEVER rely on "today" or "yesterday" for crypto/stocks. Use:
+- "higher than 24 hours ago" (crypto — timezone-neutral)
+- "higher than previous close" (stocks — exchange-neutral)
+Sports results are fine since the scoreboard is the definitive source regardless of timezone.
 
 ## Examples
 BAD: "Will a famous player score today?" → who? can't verify instantly
-BAD: "Will crypto go up?" → which one? no threshold
+BAD: "Will crypto go up today?" → which one? "today" is ambiguous across timezones
 BAD: "Will a celebrity get 1M likes?" → who? 1 post or total?
-GOOD: "Will Bitcoin (BTC) close above $85,000 today?"
-GOOD: "Will Apple (AAPL) close higher than yesterday's price?"
+GOOD: "Will Bitcoin (BTC) be higher than 24 hours ago at this time tomorrow?"
+GOOD: "Will Apple (AAPL) close higher than its previous closing price?"
 GOOD: "Will Real Madrid beat Arsenal in the Champions League quarterfinal?"
 
 Respond ONLY with valid JSON (no markdown, no explanation):
@@ -303,57 +309,57 @@ function generateFallbackQuestion() {
   // All fallbacks use only crypto/stocks/sports — outcomes verifiable by price chart or scoreboard
   const fallbacks = [
     {
-      question_en: "Will Bitcoin (BTC) close above $83,000 today?",
-      question_ja: "今日、ビットコイン（BTC）は$83,000超えでクローズすると思う？",
-      question_es: "¿Cerrará Bitcoin (BTC) por encima de $83,000 hoy?",
-      question_ko: "오늘 비트코인(BTC)이 $83,000 이상으로 마감될까요?",
-      question_th: "Bitcoin (BTC) จะปิดเหนือ $83,000 วันนี้ไหม?",
-      question_pt: "O Bitcoin (BTC) vai fechar acima de $83.000 hoje?",
+      question_en: "Will Bitcoin (BTC) be higher than 24 hours ago?",
+      question_ja: "ビットコイン（BTC）は24時間前より高い価格になっていると思う？",
+      question_es: "¿Estará Bitcoin (BTC) más alto que hace 24 horas?",
+      question_ko: "비트코인(BTC)이 24시간 전보다 높아질까요?",
+      question_th: "Bitcoin (BTC) จะสูงกว่า 24 ชั่วโมงที่แล้วไหม?",
+      question_pt: "O Bitcoin (BTC) vai estar mais alto do que há 24 horas?",
       category: "crypto",
     },
     {
-      question_en: "Will Ethereum (ETH) rise more than 3% today?",
-      question_ja: "今日、イーサリアム（ETH）は3%以上上昇すると思う？",
-      question_es: "¿Subirá Ethereum (ETH) más del 3% hoy?",
-      question_ko: "오늘 이더리움(ETH)이 3% 이상 상승할까요?",
-      question_th: "Ethereum (ETH) จะขึ้นมากกว่า 3% วันนี้ไหม?",
-      question_pt: "O Ethereum (ETH) vai subir mais de 3% hoje?",
+      question_en: "Will Ethereum (ETH) be higher than 24 hours ago?",
+      question_ja: "イーサリアム（ETH）は24時間前より高い価格になっていると思う？",
+      question_es: "¿Estará Ethereum (ETH) más alto que hace 24 horas?",
+      question_ko: "이더리움(ETH)이 24시간 전보다 높아질까요?",
+      question_th: "Ethereum (ETH) จะสูงกว่า 24 ชั่วโมงที่แล้วไหม?",
+      question_pt: "O Ethereum (ETH) vai estar mais alto do que há 24 horas?",
       category: "crypto",
     },
     {
-      question_en: "Will Solana (SOL) close higher than yesterday?",
-      question_ja: "今日、ソラナ（SOL）は昨日より高い価格でクローズすると思う？",
-      question_es: "¿Cerrará Solana (SOL) más alto que ayer?",
-      question_ko: "오늘 솔라나(SOL)가 어제보다 높게 마감될까요?",
-      question_th: "Solana (SOL) จะปิดสูงกว่าเมื่อวานนี้ไหม?",
-      question_pt: "O Solana (SOL) vai fechar mais alto do que ontem?",
+      question_en: "Will Solana (SOL) be higher than 24 hours ago?",
+      question_ja: "ソラナ（SOL）は24時間前より高い価格になっていると思う？",
+      question_es: "¿Estará Solana (SOL) más alto que hace 24 horas?",
+      question_ko: "솔라나(SOL)가 24시간 전보다 높아질까요?",
+      question_th: "Solana (SOL) จะสูงกว่า 24 ชั่วโมงที่แล้วไหม?",
+      question_pt: "O Solana (SOL) vai estar mais alto do que há 24 horas?",
       category: "crypto",
     },
     {
-      question_en: "Will the S&P 500 close in the green today?",
-      question_ja: "今日、S&P 500はプラスで終わると思う？",
-      question_es: "¿Cerrará el S&P 500 en verde hoy?",
-      question_ko: "오늘 S&P 500이 상승 마감할까요?",
-      question_th: "S&P 500 จะปิดในแดนบวกวันนี้ไหม?",
-      question_pt: "O S&P 500 vai fechar no verde hoje?",
+      question_en: "Will the S&P 500 close higher than its previous close?",
+      question_ja: "S&P 500は前回の終値より高くクローズすると思う？",
+      question_es: "¿Cerrará el S&P 500 más alto que su cierre anterior?",
+      question_ko: "S&P 500이 이전 종가보다 높게 마감될까요?",
+      question_th: "S&P 500 จะปิดสูงกว่าราคาปิดครั้งก่อนไหม?",
+      question_pt: "O S&P 500 vai fechar mais alto do que o fechamento anterior?",
       category: "stocks",
     },
     {
-      question_en: "Will Apple (AAPL) close higher than yesterday?",
-      question_ja: "今日の終値、Apple（AAPL）は昨日より上がると思う？",
-      question_es: "¿Cerrará Apple (AAPL) más alto que ayer?",
-      question_ko: "오늘 애플(AAPL)이 어제보다 높게 마감될까요?",
-      question_th: "Apple (AAPL) จะปิดสูงกว่าเมื่อวานนี้ไหม?",
-      question_pt: "A Apple (AAPL) vai fechar mais alta do que ontem?",
+      question_en: "Will Apple (AAPL) close higher than its previous close?",
+      question_ja: "Apple（AAPL）は前回の終値より高くクローズすると思う？",
+      question_es: "¿Cerrará Apple (AAPL) más alto que su cierre anterior?",
+      question_ko: "애플(AAPL)이 이전 종가보다 높게 마감될까요?",
+      question_th: "Apple (AAPL) จะปิดสูงกว่าราคาปิดครั้งก่อนไหม?",
+      question_pt: "A Apple (AAPL) vai fechar mais alta do que o fechamento anterior?",
       category: "stocks",
     },
     {
-      question_en: "Will NVIDIA (NVDA) close higher than yesterday?",
-      question_ja: "今日の終値、NVIDIA（NVDA）は昨日より上がると思う？",
-      question_es: "¿Cerrará NVIDIA (NVDA) más alto que ayer?",
-      question_ko: "오늘 엔비디아(NVDA)가 어제보다 높게 마감될까요?",
-      question_th: "NVIDIA (NVDA) จะปิดสูงกว่าเมื่อวานนี้ไหม?",
-      question_pt: "A NVIDIA (NVDA) vai fechar mais alta do que ontem?",
+      question_en: "Will NVIDIA (NVDA) close higher than its previous close?",
+      question_ja: "NVIDIA（NVDA）は前回の終値より高くクローズすると思う？",
+      question_es: "¿Cerrará NVIDIA (NVDA) más alto que su cierre anterior?",
+      question_ko: "엔비디아(NVDA)가 이전 종가보다 높게 마감될까요?",
+      question_th: "NVIDIA (NVDA) จะปิดสูงกว่าราคาปิดครั้งก่อนไหม?",
+      question_pt: "A NVIDIA (NVDA) vai fechar mais alta do que o fechamento anterior?",
       category: "stocks",
     },
     {
