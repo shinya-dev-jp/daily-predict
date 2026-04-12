@@ -184,18 +184,22 @@ function LockedState({
         <span>{t("locked.youSaid").replace("{label}", label)}</span>
       </motion.div>
 
-      {/* WLD Reward teaser */}
+      {/* WLD Reward teaser — prominent banner */}
       <motion.div
         initial={{ y: 12, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.4 }}
-        className="w-full flex items-center justify-between px-4 py-3 rounded-2xl bg-gradient-to-r from-[#F59E0B]/10 to-[#F59E0B]/5 border border-[#F59E0B]/20"
+        className="w-full px-4 py-4 rounded-2xl bg-gradient-to-r from-[#F59E0B]/15 via-[#F59E0B]/10 to-[#F59E0B]/5 border border-[#F59E0B]/25"
       >
-        <div className="flex items-center gap-2">
-          <Coins className="h-4 w-4 text-[#F59E0B]" />
-          <span className="text-[#F59E0B] text-xs font-semibold">{t("wld.ifCorrect")}</span>
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-xl bg-[#F59E0B]/20 flex items-center justify-center shrink-0">
+            <Coins className="h-5 w-5 text-[#F59E0B]" />
+          </div>
+          <div className="flex flex-col gap-0.5">
+            <span className="text-[#F59E0B] text-sm font-bold">{t("wld.earnWLD")}</span>
+            <span className="text-[#F59E0B]/60 text-[11px]">{t("wld.rewardsComingSoon")}</span>
+          </div>
         </div>
-        <span className="text-[10px] text-[#F59E0B]/60 font-medium px-2 py-0.5 rounded-full border border-[#F59E0B]/20">{t("wld.comingSoon")}</span>
       </motion.div>
 
       {/* Live vote split */}

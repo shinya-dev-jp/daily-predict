@@ -13,58 +13,115 @@ interface PredictionRow {
   meta: Record<string, unknown> | null;
 }
 
+// ── Coin ticker → CoinGecko ID mapping ────────────────────────────────────
+const COIN_IDS: Record<string, string> = {
+  BTC: "bitcoin", ETH: "ethereum", SOL: "solana", XRP: "ripple",
+  BNB: "binancecoin", ADA: "cardano", DOGE: "dogecoin", DOT: "polkadot",
+  AVAX: "avalanche-2", MATIC: "matic-network", WLD: "worldcoin-wld",
+};
+
 /**
- * Determine the result for a crypto prediction by fetching BTC price from CoinGecko.
- * Looks for a price threshold in the question text (e.g. "$85,000" or "$90,000").
+ * Extract coin ticker from question text (e.g. "Bitcoin (BTC)" → "BTC").
+ */
+function extractCoinTicker(questionEn: string): string | null {
+  const match = questionEn.match(/\(([A-Z]{2,6})\)/);
+  return match ? match[1] : null;
+}
+
+/**
+ * Resolve a crypto prediction using CoinGecko API.
+ * Supports two question patterns:
+ * 1. Threshold: "Will X be above $Y?" → check current price vs threshold
+ * 2. 24h comparison: "Will X be higher than 24 hours ago?" → check 24h % change
  */
 async function resolveCrypto(prediction: PredictionRow): Promise<"A" | "B" | null> {
   try {
+    const ticker = extractCoinTicker(prediction.question_en);
+    const coinId = ticker ? COIN_IDS[ticker] : "bitcoin";
+    if (!coinId) return null;
+
     const res = await fetch(
-      "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd",
+      `https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=usd&include_24hr_change=true`,
       { next: { revalidate: 0 } }
     );
     if (!res.ok) return null;
     const data = await res.json();
-    const btcPrice = data?.bitcoin?.usd;
-    if (typeof btcPrice !== "number") return null;
+    const coinData = data?.[coinId];
+    if (!coinData) return null;
 
-    // Extract threshold from question (e.g. "$85,000" or "$90,000")
-    const match = prediction.question_en.match(/\$([0-9,]+)/);
-    if (!match) return null;
-    const threshold = parseFloat(match[1].replace(/,/g, ""));
-    if (isNaN(threshold)) return null;
+    const price = coinData.usd;
+    const change24h = coinData.usd_24h_change;
 
-    // "above" → A=Yes, B=No
-    const isAbove = prediction.question_en.toLowerCase().includes("above");
-    if (isAbove) {
-      return btcPrice > threshold ? "A" : "B";
+    // Pattern 1: Threshold comparison ("above $85,000")
+    const thresholdMatch = prediction.question_en.match(/\$([0-9,]+)/);
+    if (thresholdMatch) {
+      const threshold = parseFloat(thresholdMatch[1].replace(/,/g, ""));
+      if (isNaN(threshold) || typeof price !== "number") return null;
+      const isAbove = prediction.question_en.toLowerCase().includes("above");
+      return isAbove ? (price > threshold ? "A" : "B") : (price < threshold ? "A" : "B");
     }
-    // "below" → A=Yes, B=No
-    return btcPrice < threshold ? "A" : "B";
+
+    // Pattern 2: 24h comparison ("higher than 24 hours ago")
+    if (prediction.question_en.toLowerCase().includes("24 hour") && typeof change24h === "number") {
+      return change24h > 0 ? "A" : "B";
+    }
+
+    return null;
   } catch {
     return null;
   }
 }
 
 /**
- * Determine result based on category. Falls back to majority vote if API unavailable.
+ * Resolve a stocks prediction by checking if current price > previous close.
+ * Uses Yahoo Finance v8 API (unofficial, free, no key required).
+ */
+async function resolveStocks(prediction: PredictionRow): Promise<"A" | "B" | null> {
+  try {
+    // Extract ticker symbol from question (e.g. "Apple (AAPL)" → "AAPL")
+    const tickerMatch = prediction.question_en.match(/\(([A-Z]{1,5})\)/);
+    // For S&P 500, look for the index name
+    const isSP500 = prediction.question_en.includes("S&P 500");
+    const symbol = tickerMatch ? tickerMatch[1] : isSP500 ? "%5EGSPC" : null;
+    if (!symbol) return null;
+
+    const res = await fetch(
+      `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=2d`,
+      { next: { revalidate: 0 } }
+    );
+    if (!res.ok) return null;
+    const data = await res.json();
+    const closes = data?.chart?.result?.[0]?.indicators?.quote?.[0]?.close;
+    if (!Array.isArray(closes) || closes.length < 2) return null;
+
+    const previousClose = closes[closes.length - 2];
+    const currentClose = closes[closes.length - 1];
+    if (typeof previousClose !== "number" || typeof currentClose !== "number") return null;
+
+    // "higher than previous close" → A=Yes, B=No
+    return currentClose > previousClose ? "A" : "B";
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Determine result based on category. Falls back to null if API unavailable.
+ * Sports questions are left unresolved (manual resolution needed until sports API is added).
  */
 async function determineResult(prediction: PredictionRow): Promise<"A" | "B" | null> {
-  // Try category-specific resolution
   if (prediction.category === "crypto") {
     const result = await resolveCrypto(prediction);
     if (result) return result;
   }
 
-  // Fallback: majority vote (if enough votes)
-  if (prediction.vote_count >= 10) {
-    const optionAPercent = prediction.option_a_votes / prediction.vote_count;
-    // Only use majority if there's a clear consensus (60%+)
-    if (optionAPercent >= 0.6) return "A";
-    if (optionAPercent <= 0.4) return "B";
+  if (prediction.category === "stocks") {
+    const result = await resolveStocks(prediction);
+    if (result) return result;
   }
 
-  // Cannot determine result objectively — return null to leave unresolved
+  // Sports: no auto-resolution yet — leave as null (inconclusive)
+  // Majority-vote fallback removed: results must be objectively verifiable
   return null;
 }
 

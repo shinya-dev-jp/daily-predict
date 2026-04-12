@@ -103,6 +103,8 @@
 
   "wld.ifCorrect": "정답 시 +0.001 WLD",
   "wld.comingSoon": "출시 예정",
+  "wld.earnWLD": "정답 시 WLD 획득",
+  "wld.rewardsComingSoon": "WLD 보상 곧 시작",
 
   "rewards.comingSoon": "출시 예정",
   "rewards.title": "주간 로그인 보상",
