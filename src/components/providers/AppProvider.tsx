@@ -15,6 +15,16 @@ import type {
   TabKey,
 } from "@/lib/types";
 import { MiniKit, VerificationLevel } from "@worldcoin/minikit-js";
+import {
+  todayPrediction as demoToday,
+  yesterdayPrediction as demoYesterday,
+  demoUserProfile,
+} from "@/data/demo-predictions";
+
+function isPreviewMode(): boolean {
+  if (typeof window === "undefined") return false;
+  return new URLSearchParams(window.location.search).get("preview") === "1";
+}
 
 // ============================================================
 // Context shape
@@ -63,26 +73,30 @@ const LS_TOKEN_KEY = "dp_wallet_token";
 // ============================================================
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [currentPrediction, setCurrentPrediction] = useState<Prediction | null>(null);
-  const [yesterdayPrediction, setYesterdayPrediction] = useState<Prediction | null>(null);
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const preview = isPreviewMode();
+
+  const [currentPrediction, setCurrentPrediction] = useState<Prediction | null>(() => preview ? demoToday : null);
+  const [yesterdayPrediction, setYesterdayPrediction] = useState<Prediction | null>(() => preview ? demoYesterday : null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(() => preview ? demoUserProfile : null);
   // Restore session from localStorage on mount
   const [walletAddress, setWalletAddress] = useState<string | null>(() => {
+    if (preview) return demoUserProfile.address;
     if (typeof window !== "undefined") {
       return localStorage.getItem(LS_ADDRESS_KEY) ?? null;
     }
     return null;
   });
   const [authToken, setAuthToken] = useState<string | null>(() => {
+    if (preview) return "preview-token";
     if (typeof window !== "undefined") {
       return localStorage.getItem(LS_TOKEN_KEY) ?? null;
     }
     return null;
   });
-  const [hasPredictedToday, setHasPredictedToday] = useState(false);
-  const [userChoice, setUserChoice] = useState<"A" | "B" | null>(null);
-  const [resultPercent, setResultPercent] = useState<number | null>(null);
-  const [isLoadingQuestion, setIsLoadingQuestion] = useState(true);
+  const [hasPredictedToday, setHasPredictedToday] = useState(() => preview ? true : false);
+  const [userChoice, setUserChoice] = useState<"A" | "B" | null>(() => preview ? "A" : null);
+  const [resultPercent, setResultPercent] = useState<number | null>(() => preview ? 58 : null);
+  const [isLoadingQuestion, setIsLoadingQuestion] = useState(() => preview ? false : true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentTab, setCurrentTabRaw] = useState<TabKey>("predict");
   const setCurrentTab = useCallback((tab: TabKey) => setCurrentTabRaw(tab), []);
@@ -92,6 +106,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // ── Fetch today's (and yesterday's) question on mount ──────────────────────
   useEffect(() => {
+    if (preview) return; // demo data already set in useState
     let cancelled = false;
 
     async function fetchQuestion() {
@@ -115,11 +130,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [preview]);
 
   // ── Restore user profile from API on session resume ────────────────────────
   useEffect(() => {
-    if (!walletAddress || !authToken || userProfile) return;
+    if (preview || !walletAddress || !authToken || userProfile) return;
 
     async function restoreProfile() {
       try {
@@ -152,7 +167,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // ── Check whether user already predicted today (after authentication) ──────
   useEffect(() => {
-    if (!walletAddress || !authToken || !currentPrediction) return;
+    if (preview || !walletAddress || !authToken || !currentPrediction) return;
 
     async function checkPriorPrediction() {
       try {
