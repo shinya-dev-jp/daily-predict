@@ -12,8 +12,9 @@ import { logError } from "@/lib/server-log";
  * Requires CRON_SECRET header for authentication.
  */
 
-// Only categories whose outcomes are self-evidently verifiable (price charts, scoreboard)
-const CATEGORIES = ["crypto", "stocks", "sports"] as const;
+// Only categories whose outcomes are auto-resolvable via price APIs
+// Sports removed: no sports results API → questions stay unresolved indefinitely
+const CATEGORIES = ["crypto", "stocks"] as const;
 
 /**
  * Vercel Cron sends GET requests. Accept both GET and POST.
@@ -103,21 +104,16 @@ The result must be self-evident. A user who checks tomorrow should immediately k
 ## Category-specific rules
 - crypto: coin ticker + comparison to 24h-ago price OR a round-number threshold (e.g., "BTC higher than 24h ago", "BTC above $85,000")
 - stocks: stock ticker + comparison to previous close (e.g., "AAPL closes higher than previous close") — avoid "today/yesterday" since market timezones differ
-- sports: BOTH team names + specific match/event name (e.g., "Real Madrid vs Arsenal in the UCL quarterfinal") — result is on the scoreboard
-
 ## Timezone rule
-NEVER rely on "today" or "yesterday" for crypto/stocks. Use:
+NEVER rely on "today" or "yesterday". Use:
 - "higher than 24 hours ago" (crypto — timezone-neutral)
 - "higher than previous close" (stocks — exchange-neutral)
-Sports results are fine since the scoreboard is the definitive source regardless of timezone.
 
 ## Examples
-BAD: "Will a famous player score today?" → who? can't verify instantly
 BAD: "Will crypto go up today?" → which one? "today" is ambiguous across timezones
 BAD: "Will a celebrity get 1M likes?" → who? 1 post or total?
 GOOD: "Will Bitcoin (BTC) be higher than 24 hours ago at this time tomorrow?"
 GOOD: "Will Apple (AAPL) close higher than its previous closing price?"
-GOOD: "Will Real Madrid beat Arsenal in the Champions League quarterfinal?"
 
 Respond ONLY with valid JSON (no markdown, no explanation):
 {"question_en": "Will X happen?", "question_ja": "Xは起こる？", "question_es": "¿Sucederá X?", "question_ko": "X가 일어날까요?", "question_th": "X จะเกิดขึ้นไหม?", "question_pt": "X vai acontecer?", "option_a": "Yes", "option_b": "No"}`;
@@ -306,7 +302,7 @@ function detectVagueQuestion(questionEn: string, questionJa: string): string | n
 function generateFallbackQuestion() {
   const closesAt = todaysCloseAt();
 
-  // All fallbacks use only crypto/stocks/sports — outcomes verifiable by price chart or scoreboard
+  // All fallbacks are crypto/stocks — auto-resolvable via price APIs
   const fallbacks = [
     {
       question_en: "Will Bitcoin (BTC) be higher than 24 hours ago?",
@@ -361,24 +357,6 @@ function generateFallbackQuestion() {
       question_th: "NVIDIA (NVDA) จะปิดสูงกว่าราคาปิดครั้งก่อนไหม?",
       question_pt: "A NVIDIA (NVDA) vai fechar mais alta do que o fechamento anterior?",
       category: "stocks",
-    },
-    {
-      question_en: "Will Real Madrid win their next Champions League match?",
-      question_ja: "レアル・マドリードは次のチャンピオンズリーグの試合に勝つと思う？",
-      question_es: "¿Ganará el Real Madrid su próximo partido de Champions League?",
-      question_ko: "레알 마드리드가 다음 챔피언스리그 경기에서 이길까요?",
-      question_th: "Real Madrid จะชนะเกมถัดไปใน Champions League ไหม?",
-      question_pt: "O Real Madrid vai vencer seu próximo jogo na Champions League?",
-      category: "sports",
-    },
-    {
-      question_en: "Will the NBA game tonight end with a margin of 10+ points?",
-      question_ja: "今夜のNBAの試合は10点差以上の結果になると思う？",
-      question_es: "¿El partido de NBA de esta noche terminará con una diferencia de 10+ puntos?",
-      question_ko: "오늘 밤 NBA 경기가 10점 이상 차이로 끝날까요?",
-      question_th: "เกม NBA คืนนี้จะจบด้วยคะแนนห่างกัน 10+ แต้มไหม?",
-      question_pt: "O jogo de NBA de hoje à noite vai terminar com uma diferença de 10+ pontos?",
-      category: "sports",
     },
   ];
 

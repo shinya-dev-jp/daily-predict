@@ -115,5 +115,20 @@
   "rewards.rule1": "매일 예측해서 연속 기록을 유지",
   "rewards.rule2": "참여한 날마다 0.001 WLD 획득",
   "rewards.rule3": "7일 연속 달성 시 0.01 WLD 보너스",
-  "rewards.rule4": "World App 지갑에 자동 입금"
+  "rewards.rule4": "World App 지갑에 자동 입금",
+
+  "badge.first_prediction.name": "첫 예측",
+  "badge.first_prediction.requirement": "첫 번째 예측을 해보세요",
+  "badge.streak_3.name": "3연속 정답",
+  "badge.streak_3.requirement": "3일 연속 정답",
+  "badge.streak_7.name": "주간 전사",
+  "badge.streak_7.requirement": "7일 연속 정답",
+  "badge.streak_30.name": "월간 마스터",
+  "badge.streak_30.requirement": "30일 연속 정답",
+  "badge.consistent.name": "꾸준한 예측자",
+  "badge.consistent.requirement": "총 10문제 정답",
+  "badge.contrarian.name": "역발상가",
+  "badge.contrarian.requirement": "30% 미만 동의 시 정답",
+  "badge.early_bird.name": "얼리버드",
+  "badge.early_bird.requirement": "질문 게시 1시간 내 예측"
 }

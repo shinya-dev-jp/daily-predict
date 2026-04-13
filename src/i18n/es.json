@@ -115,5 +115,20 @@
   "rewards.rule1": "Predice diariamente para mantener tu racha",
   "rewards.rule2": "Gana 0.001 WLD por cada día que participes",
   "rewards.rule3": "Completa una racha de 7 días para un bono de 0.01 WLD",
-  "rewards.rule4": "Depositado automáticamente en tu billetera de World App"
+  "rewards.rule4": "Depositado automáticamente en tu billetera de World App",
+
+  "badge.first_prediction.name": "Primera Predicción",
+  "badge.first_prediction.requirement": "Haz tu primera predicción",
+  "badge.streak_3.name": "Racha de 3 Días",
+  "badge.streak_3.requirement": "3 predicciones correctas seguidas",
+  "badge.streak_7.name": "Guerrero Semanal",
+  "badge.streak_7.requirement": "7 predicciones correctas seguidas",
+  "badge.streak_30.name": "Maestro Mensual",
+  "badge.streak_30.requirement": "30 predicciones correctas seguidas",
+  "badge.consistent.name": "Consistente",
+  "badge.consistent.requirement": "Acierta 10 predicciones",
+  "badge.contrarian.name": "Contrario",
+  "badge.contrarian.requirement": "Gana cuando <30% estuvo de acuerdo",
+  "badge.early_bird.name": "Madrugador",
+  "badge.early_bird.requirement": "Predice en la 1ª hora de la pregunta"
 }

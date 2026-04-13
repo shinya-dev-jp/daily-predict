@@ -115,5 +115,20 @@
   "rewards.rule1": "Preveja diariamente para manter sua sequência",
   "rewards.rule2": "Ganhe 0.001 WLD por cada dia de participação",
   "rewards.rule3": "Complete 7 dias para um bônus de 0.01 WLD",
-  "rewards.rule4": "Depositado automaticamente na sua carteira World App"
+  "rewards.rule4": "Depositado automaticamente na sua carteira World App",
+
+  "badge.first_prediction.name": "Primeira Previsão",
+  "badge.first_prediction.requirement": "Faça sua primeira previsão",
+  "badge.streak_3.name": "Sequência de 3 Dias",
+  "badge.streak_3.requirement": "3 previsões corretas seguidas",
+  "badge.streak_7.name": "Guerreiro Semanal",
+  "badge.streak_7.requirement": "7 previsões corretas seguidas",
+  "badge.streak_30.name": "Mestre Mensal",
+  "badge.streak_30.requirement": "30 previsões corretas seguidas",
+  "badge.consistent.name": "Consistente",
+  "badge.consistent.requirement": "Acerte 10 previsões",
+  "badge.contrarian.name": "Contrário",
+  "badge.contrarian.requirement": "Vença quando <30% concordou",
+  "badge.early_bird.name": "Madrugador",
+  "badge.early_bird.requirement": "Preveja na 1ª hora da pergunta"
 }

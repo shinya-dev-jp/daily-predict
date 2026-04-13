@@ -1,0 +1,82 @@
+{
+  "basic": {
+    "app_name": "Daily Predict",
+    "publisher": "Shinya Dev",
+    "app_url": "https://daily-predict-two.vercel.app",
+    "official_website": "https://daily-predict-two.vercel.app",
+    "is_mini_app": true,
+    "compliance_gambling": false,
+    "verified_humans_only": true,
+    "category": "Social",
+    "support_type": "email",
+    "support_value": "shinya.yuda.b@gmail.com"
+  },
+
+  "images": {
+    "app_logo": "public/app-icon-small.png",
+    "content_card": "public/content-card.png",
+    "showcase_images": [
+      "public/showcase-1.png",
+      "public/showcase-2.png",
+      "public/showcase-3.png"
+    ],
+    "meta_tag_image": null
+  },
+
+  "countries": "all",
+
+  "languages": ["en", "ja", "ko", "es", "pt", "th"],
+
+  "localisations": {
+    "en": {
+      "app_name": "Daily Predict",
+      "short_name": "DailyPred",
+      "tag_line": "Predict today. Compete globally.",
+      "description": "Daily Predict delivers one question every day — crypto, sports, weather, and world events. Vote Yes or No, see how your prediction stacks up against users worldwide, and climb the leaderboard. Build prediction streaks, earn points, and unlock badges. Verified humans only — every prediction counts."
+    },
+    "ja": {
+      "app_name": "Daily Predict",
+      "short_name": "DailyPred",
+      "tag_line": "毎日1問で世界と勝負。",
+      "description": "Daily Predictは毎日1問を配信する予測アプリです。仮想通貨・スポーツ・天気・世界の出来事からYes/Noで投票し、世界中のユーザーと結果を比較。ランキングを駆け上がり、ストリークを伸ばしてバッジを獲得しましょう。認証済みユーザー限定 — あなたの予測が結果を動かします。"
+    },
+    "ko": {
+      "app_name": "Daily Predict",
+      "short_name": "DailyPred",
+      "tag_line": "매일 1문제로 세계와 경쟁.",
+      "description": "Daily Predict는 매일 하나의 질문을 제공합니다. 암호화폐, 스포츠, 날씨, 세계 이슈에 대해 Yes/No로 투표하고 전 세계 사용자와 결과를 비교하세요. 리더보드를 오르고 스트릭을 쌓아 배지를 획득하세요. 인증된 사용자 전용."
+    },
+    "es": {
+      "app_name": "Daily Predict",
+      "short_name": "DailyPred",
+      "tag_line": "Predice hoy. Compite globalmente.",
+      "description": "Daily Predict ofrece una pregunta cada día sobre cripto, deportes, clima y eventos mundiales. Vota Sí o No, compara tu predicción con usuarios de todo el mundo y escala el tablero. Construye rachas, gana puntos y desbloquea insignias. Solo humanos verificados."
+    },
+    "pt": {
+      "app_name": "Daily Predict",
+      "short_name": "DailyPred",
+      "tag_line": "Preveja hoje. Compita globalmente.",
+      "description": "Daily Predict entrega uma pergunta por dia sobre cripto, esportes, clima e eventos mundiais. Vote Sim ou Não, compare sua previsão com usuários do mundo todo e suba no placar. Construa sequências, ganhe pontos e desbloqueie conquistas. Apenas humanos verificados."
+    },
+    "th": {
+      "app_name": "Daily Predict",
+      "short_name": "DailyPred",
+      "tag_line": "ทายวันนี้ แข่งทั่วโลก",
+      "description": "Daily Predict นำเสนอคำถามทุกวัน — คริปโต กีฬา สภาพอากาศ และเหตุการณ์โลก โหวต Yes หรือ No เปรียบเทียบผลกับผู้ใช้ทั่วโลก ขึ้นลีดเดอร์บอร์ด สร้างสตรีค สะสมคะแนน และปลดล็อกแบดจ์ เฉพาะมนุษย์ที่ผ่านการยืนยันเท่านั้น"
+    }
+  },
+
+  "mini_app_permissions": {
+    "whitelisted_payment_addresses": [],
+    "disable_whitelist": false,
+    "permit2_tokens": []
+  },
+
+  "_notes": {
+    "status": "In Review — Un-submit → テキスト更新 → 再Submit が必要",
+    "tag_line_char_count": {
+      "en": 34,
+      "ja": 14
+    }
+  }
+}

@@ -115,5 +115,20 @@
   "rewards.rule1": "毎日予測してストリークを維持",
   "rewards.rule2": "参加した日ごとに 0.001 WLD を獲得",
   "rewards.rule3": "7日連続達成で 0.01 WLD のボーナス",
-  "rewards.rule4": "World App ウォレットに自動入金"
+  "rewards.rule4": "World App ウォレットに自動入金",
+
+  "badge.first_prediction.name": "初予測",
+  "badge.first_prediction.requirement": "初めての予測をする",
+  "badge.streak_3.name": "3連続正解",
+  "badge.streak_3.requirement": "3日連続で正解する",
+  "badge.streak_7.name": "週間戦士",
+  "badge.streak_7.requirement": "7日連続で正解する",
+  "badge.streak_30.name": "月間マスター",
+  "badge.streak_30.requirement": "30日連続で正解する",
+  "badge.consistent.name": "安定予測者",
+  "badge.consistent.requirement": "合計10問正解する",
+  "badge.contrarian.name": "逆張り師",
+  "badge.contrarian.requirement": "少数派（30%未満）で正解する",
+  "badge.early_bird.name": "早起き鳥",
+  "badge.early_bird.requirement": "問題公開後1時間以内に予測する"
 }

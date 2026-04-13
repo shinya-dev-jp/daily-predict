@@ -115,5 +115,20 @@
   "rewards.rule1": "Predict daily to keep your streak alive",
   "rewards.rule2": "Earn 0.001 WLD for each day you participate",
   "rewards.rule3": "Complete a 7-day streak for a 0.01 WLD bonus",
-  "rewards.rule4": "Auto-deposited to your World App wallet"
+  "rewards.rule4": "Auto-deposited to your World App wallet",
+
+  "badge.first_prediction.name": "First Prediction",
+  "badge.first_prediction.requirement": "Make your first prediction",
+  "badge.streak_3.name": "3-Day Streak",
+  "badge.streak_3.requirement": "3 correct predictions in a row",
+  "badge.streak_7.name": "Week Warrior",
+  "badge.streak_7.requirement": "7 correct predictions in a row",
+  "badge.streak_30.name": "Monthly Master",
+  "badge.streak_30.requirement": "30 correct predictions in a row",
+  "badge.consistent.name": "Consistent",
+  "badge.consistent.requirement": "Get 10 predictions correct",
+  "badge.contrarian.name": "Contrarian",
+  "badge.contrarian.requirement": "Win when <30% agreed with you",
+  "badge.early_bird.name": "Early Bird",
+  "badge.early_bird.requirement": "Predict within 1 hour of question posting"
 }

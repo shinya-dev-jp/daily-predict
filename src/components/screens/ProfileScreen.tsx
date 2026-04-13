@@ -309,12 +309,12 @@ function BadgesSection({
 
       {/* Earned */}
       {earned.length > 0 && (
-        <div className="flex gap-2 flex-wrap mb-3">
-          {earned.map((badge) => (
+        <div className="grid grid-cols-2 gap-2 mb-3">
+          {earned.map((badge, idx) => (
             <motion.div
               key={badge.id}
               whileHover={{ scale: 1.05 }}
-              className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-[#252152] min-w-[76px]"
+              className={`flex flex-col items-center gap-1 p-3 rounded-2xl bg-[#252152]${earned.length % 2 !== 0 && idx === earned.length - 1 ? " col-span-2" : ""}`}
             >
               <div className="h-8 w-8 rounded-full bg-[rgb(0,194,48)]/15 flex items-center justify-center">
                 <BadgeIcon
@@ -323,7 +323,7 @@ function BadgesSection({
                 />
               </div>
               <span className="text-[10px] font-semibold text-white/90 text-center leading-tight">
-                {badge.name}
+                {t(`badge.${badge.id}.name` as Parameters<typeof t>[0]) || badge.name}
               </span>
               {badge.earned_at && (
                 <span className="text-[9px] text-white/30">
@@ -341,20 +341,20 @@ function BadgesSection({
           <span className="text-[11px] text-white/30 uppercase tracking-wider font-semibold block mb-2">
             {t("profile.locked")}
           </span>
-          <div className="flex gap-2 flex-wrap">
-            {locked.map((badge) => (
+          <div className="grid grid-cols-2 gap-2">
+            {locked.map((badge, idx) => (
               <div
                 key={badge.id}
-                className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-[#252152] min-w-[76px] opacity-45"
+                className={`flex flex-col items-center gap-1 p-3 rounded-2xl bg-[#252152] opacity-45${locked.length % 2 !== 0 && idx === locked.length - 1 ? " col-span-2" : ""}`}
               >
                 <div className="h-8 w-8 rounded-full bg-[#3B366E] flex items-center justify-center">
                   <Lock className="h-4 w-4 text-white/30" />
                 </div>
                 <span className="text-[10px] font-semibold text-white/40 text-center leading-tight">
-                  {badge.name}
+                  {t(`badge.${badge.id}.name` as Parameters<typeof t>[0]) || badge.name}
                 </span>
                 <span className="text-[9px] text-white/20 text-center leading-tight">
-                  {badge.requirement}
+                  {t(`badge.${badge.id}.requirement` as Parameters<typeof t>[0]) || badge.requirement}
                 </span>
               </div>
             ))}
