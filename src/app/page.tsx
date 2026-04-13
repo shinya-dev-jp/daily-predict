@@ -438,7 +438,7 @@ function DailyPredictApp() {
         {tab === "predict" && (
           isLoadingQuestion ? (
             <QuestionLoading />
-          ) : todayPrediction ? (
+          ) : todayPrediction && (todayPrediction.status === "open" || userChoice) ? (
             <PredictScreen
               prediction={todayPrediction}
               userProfile={profile}
