@@ -104,6 +104,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // Double-tap / race-condition guard
   const submittingRef = useRef(false);
 
+  // ── SSR hydration fix: preview mode relies on `window` which is unavailable
+  //    during SSR, so useState initializers default to non-preview values.
+  //    Re-apply preview state after mount on the client. ──────────────────────
+  useEffect(() => {
+    if (!isPreviewMode()) return;
+    setCurrentPrediction(demoToday);
+    setYesterdayPrediction(demoYesterday);
+    setUserProfile(demoUserProfile);
+    setWalletAddress(demoUserProfile.address);
+    setAuthToken("preview-token");
+    setHasPredictedToday(true);
+    setUserChoice("A");
+    setResultPercent(58);
+    setIsLoadingQuestion(false);
+  }, []);
+
   // ── Fetch today's (and yesterday's) question on mount ──────────────────────
   useEffect(() => {
     if (preview) return; // demo data already set in useState
