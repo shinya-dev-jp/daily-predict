@@ -2,7 +2,7 @@ import { MiniKit, Permission } from "@worldcoin/minikit-js";
 import { track } from "./track";
 
 /**
- * World App deep link for DailyPredict.
+ * World App deep link for TuringVote.
  * Opens directly in World App; falls back to download page.
  */
 export const APP_DEEP_LINK =
@@ -17,7 +17,7 @@ export async function shareText(text: string): Promise<boolean> {
   try {
     if (MiniKit.isInstalled()) {
       const result = await MiniKit.commandsAsync.share({
-        title: "DailyPredict",
+        title: "TuringVote",
         text,
         url: APP_DEEP_LINK,
       });
@@ -33,7 +33,7 @@ export async function shareText(text: string): Promise<boolean> {
   // 2. Web Share API (mobile browsers outside World App)
   if (typeof navigator !== "undefined" && navigator.share) {
     try {
-      await navigator.share({ text, title: "DailyPredict", url: APP_DEEP_LINK });
+      await navigator.share({ text, title: "TuringVote", url: APP_DEEP_LINK });
       track("share", { metadata: { surface: "web_share" } });
       return true;
     } catch {
@@ -65,8 +65,8 @@ export function buildResultShareText(
 ): string {
   const emoji = isCorrect ? "\u2705" : "\u274C";
   return isCorrect
-    ? `${emoji} I was in the ${correctPercent}% who got it right on DailyPredict!\n\n"${questionEn}"\n\n\uD83C\uDFAF Play now:`
-    : `${emoji} ${correctPercent}% of humans got today's DailyPredict right \u2014 I wasn't one of them.\n\n"${questionEn}"\n\n\uD83C\uDFAF Play now:`;
+    ? `${emoji} I was in the ${correctPercent}% who got it right on TuringVote!\n\n"${questionEn}"\n\n\uD83C\uDFAF Play now:`
+    : `${emoji} ${correctPercent}% of humans got today's TuringVote right \u2014 I wasn't one of them.\n\n"${questionEn}"\n\n\uD83C\uDFAF Play now:`;
 }
 
 /**
@@ -77,7 +77,7 @@ export function buildPredictionShareText(
   chosenLabel: string,
   agreePercent: number
 ): string {
-  return `\uD83D\uDD2E I just predicted "${chosenLabel}" on DailyPredict!\n\n"${questionEn}"\n\n${agreePercent}% agree with me. What do you think?\n\n\uD83C\uDFAF Play now:`;
+  return `\uD83D\uDD2E I just predicted "${chosenLabel}" on TuringVote!\n\n"${questionEn}"\n\n${agreePercent}% agree with me. What do you think?\n\n\uD83C\uDFAF Play now:`;
 }
 
 /**

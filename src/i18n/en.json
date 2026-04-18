@@ -1,7 +1,13 @@
 {
-  "app.title": "DailyPredict",
+  "app.title": "TuringVote",
   "app.offline": "You are offline. Some features may not work.",
   "app.verified": "Verified",
+  "app.footer": "One Verified Human · One vote · Never changed",
+
+  "vote.loading": "Loading a question…",
+  "vote.you": "← you",
+  "vote.totalVoters": "{n} Verified Humans have answered this",
+  "vote.next": "Next question",
 
   "tabs.predict": "Predict",
   "tabs.results": "Results",
@@ -82,14 +88,14 @@
   "profile.legendWrong": "Wrong",
   "profile.legendMissed": "Missed",
 
-  "verify.subtitle": "Predict real-world outcomes with verified humans around the globe.",
-  "verify.feature1": "One question per day — vote Yes or No",
-  "verify.feature2": "Only verified humans can participate",
-  "verify.feature3": "Earn points and climb the leaderboard",
+  "verify.subtitle": "Neutral 2-choice polls an AI cannot honestly prefer. A mirror of verified humans.",
+  "verify.feature1": "Tap A or B on neutral questions",
+  "verify.feature2": "Only Verified Humans can participate",
+  "verify.feature3": "See how other humans actually chose",
   "verify.button": "Sign in with World Wallet",
   "verify.verifying": "Signing in...",
   "verify.notInWorldApp": "Please open this app inside World App to sign in with your wallet.",
-  "verify.footer": "Sign in with your World wallet — one person, one vote",
+  "verify.footer": "One Verified Human · One vote",
 
   "predict.verifiedOnly": "Verified Humans Only",
   "predict.verifying": "Verifying with World ID...",

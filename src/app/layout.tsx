@@ -2,38 +2,42 @@ import type { Metadata, Viewport } from "next";
 import { MiniKitWrapper } from "@/components/providers/MiniKitWrapper";
 import { Toaster } from "@worldcoin/mini-apps-ui-kit-react";
 import "./globals.css";
+import { Geist } from "next/font/google";
+import { cn } from "@/lib/utils";
 
-const BASE_URL = "https://daily-predict-two.vercel.app";
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
-const TITLE = "DailyPredict — A daily prediction game for verified humans";
+const BASE_URL = "https://turingvote.vercel.app";
+
+const TITLE = "TuringVote — Verified-human only 2-choice polls";
 const DESCRIPTION =
-  "Vote on real-world outcomes once a day. Verified humans only via World ID. Build streaks, climb the leaderboard, see what the crowd thinks.";
+  "Vote on neutral 2-choice questions. Only Verified Humans via World ID can participate. See how the verified crowd answers.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
   title: {
     default: TITLE,
-    template: "%s | DailyPredict",
+    template: "%s | TuringVote",
   },
   description: DESCRIPTION,
   keywords: [
-    "DailyPredict",
+    "TuringVote",
     "World ID",
     "World App",
     "Mini App",
-    "prediction game",
-    "daily quiz",
     "verified humans",
     "proof of personhood",
+    "2-choice poll",
+    "human vote",
   ],
-  authors: [{ name: "DailyPredict" }],
-  creator: "DailyPredict",
+  authors: [{ name: "TuringVote" }],
+  creator: "TuringVote",
   openGraph: {
     type: "website",
     locale: "en_US",
-    alternateLocale: ["ja_JP", "es_ES", "ko_KR", "th_TH", "pt_BR"],
+    alternateLocale: ["ja_JP"],
     url: BASE_URL,
-    siteName: "DailyPredict",
+    siteName: "TuringVote",
     title: TITLE,
     description: DESCRIPTION,
     // No image referenced — Next.js will fall back to the icons defined below.
@@ -68,7 +72,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className={cn("font-sans", geist.variable)}>
       <head>
         {/* Preconnect to Supabase to shave ~100-300ms off the first /api call */}
         <link rel="preconnect" href="https://wgszbxgsxekwdmssnvvd.supabase.co" />

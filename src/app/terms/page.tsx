@@ -7,7 +7,7 @@ export default function TermsOfService() {
       <section className="mb-6">
         <h2 className="text-lg font-semibold text-white mb-2">1. Acceptance of Terms</h2>
         <p>
-          By using DailyPredict (&quot;the App&quot;), you agree to these Terms of Service.
+          By using TuringVote (&quot;the App&quot;), you agree to these Terms of Service.
           If you do not agree, please do not use the App.
         </p>
       </section>
@@ -15,7 +15,7 @@ export default function TermsOfService() {
       <section className="mb-6">
         <h2 className="text-lg font-semibold text-white mb-2">2. Description of Service</h2>
         <p>
-          DailyPredict is a prediction game where World ID-verified users make daily
+          TuringVote is a prediction game where World ID-verified users make daily
           predictions about real-world events. Users earn points and compete on
           leaderboards based on prediction accuracy.
         </p>
@@ -66,7 +66,7 @@ export default function TermsOfService() {
         <p>
           The App is provided &quot;as is&quot; without warranties of any kind. We are not
           responsible for any losses or damages arising from your use of the App.
-          DailyPredict is a game for entertainment purposes and does not constitute
+          TuringVote is a game for entertainment purposes and does not constitute
           financial advice or gambling.
         </p>
       </section>
@@ -74,7 +74,7 @@ export default function TermsOfService() {
       <section className="mb-6">
         <h2 className="text-lg font-semibold text-white mb-2">8. Rewards & Tax Responsibility</h2>
         <p>
-          DailyPredict may, at its sole discretion, distribute WLD or other tokens to
+          TuringVote may, at its sole discretion, distribute WLD or other tokens to
           users as participation rewards (e.g. login streak bonuses). Such rewards are
           gratuitous, may change or be discontinued at any time, and are not guaranteed.
           Reward amounts and eligibility are determined by automated, publicly documented
@@ -83,7 +83,7 @@ export default function TermsOfService() {
         <p className="mt-2">
           <strong>Tax responsibility:</strong> You are solely responsible for any taxes,
           reporting obligations, or legal compliance arising from rewards you receive.
-          DailyPredict does not provide tax advice and does not issue tax documents.
+          TuringVote does not provide tax advice and does not issue tax documents.
           On-chain transaction records are publicly verifiable on the Worldchain explorer.
         </p>
       </section>

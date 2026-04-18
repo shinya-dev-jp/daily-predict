@@ -1,14 +1,13 @@
-# DailyPredict
+# TuringVote
 
-A daily prediction game for World App. Verified humans make one prediction per day and compete for WLD rewards.
+Verified-human only 2-choice polls for World App. Tap A or B on neutral questions — the kind an AI cannot honestly prefer — and see how other Verified Humans chose. One nullifier, one vote per question.
 
 ## Tech Stack
 
 - **Framework**: Next.js 16 / React 19 / TypeScript
 - **Styling**: Tailwind CSS 4
 - **Backend**: Supabase (PostgreSQL + Row-Level Security)
-- **Identity**: World ID via MiniKit SDK
-- **AI**: Anthropic Claude API (question generation)
+- **Identity**: World ID (Orb Legacy verify + Wallet SIWE fallback)
 - **Deployment**: Vercel
 
 ## Getting Started
@@ -17,15 +16,17 @@ A daily prediction game for World App. Verified humans make one prediction per d
 npm install
 ```
 
-Create `.env.local` with the required variables:
+Apply the Supabase schema (one-time) by pasting `src/scripts/tc_init.sql` into the Supabase SQL Editor for the `world-apps` project.
+
+Create `.env.local` with:
 
 ```
 NEXT_PUBLIC_WLD_APP_ID=
-NEXT_PUBLIC_WLD_ACTION=daily-predict-verify
+NEXT_PUBLIC_WLD_ACTION=turingvote-vote
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
-ANTHROPIC_API_KEY=
-CRON_SECRET=
+SUPABASE_SERVICE_ROLE_KEY=
+DP_AUTH_SECRET=
 ```
 
 Run the development server:
@@ -40,10 +41,12 @@ Open [http://localhost:3000](http://localhost:3000).
 
 | Route | Description |
 |---|---|
-| `/api/question` | Fetch or generate today's prediction question |
-| `/api/predict` | Submit a user's prediction |
-| `/api/verify` | Verify World ID proof |
-| `/api/cron` | Scheduled tasks (resolve yesterday's question, generate new) |
+| `GET /api/questions` | Random neutral question from `src/data/tc_questions.json` |
+| `GET /api/questions?id=<n>` | Fetch a specific question by id |
+| `POST /api/vote` | Cast a vote (dual verify: orb_legacy or wallet_siwe) |
+| `GET /api/tally/[id]` | Aggregate A/B tally for the Reveal screen |
+| `GET /api/auth/nonce` | SIWE nonce for wallet auth |
+| `POST /api/auth/wallet` | Verify SIWE signature, mint session token |
 
 ## Deployment
 

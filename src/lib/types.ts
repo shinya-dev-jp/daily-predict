@@ -1,5 +1,33 @@
 // ============================================================
-// Core prediction types
+// TuringVote — neutral 2-choice polls for verified humans
+// ============================================================
+
+export type QuestionCategory =
+  | "lifestyle"
+  | "preference"
+  | "style"
+  | "values"
+  | "ethics";
+
+export interface Question {
+  id: number;
+  category: QuestionCategory;
+  ja: { prompt: string; option_a: string; option_b: string };
+  en: { prompt: string; option_a: string; option_b: string };
+}
+
+export interface Tally {
+  question_id: number;
+  category: QuestionCategory | null;
+  total_votes: number;
+  votes_a: number;
+  votes_b: number;
+}
+
+export type VoteChoice = "A" | "B";
+
+// ============================================================
+// Legacy prediction types (Daily Predict origin — kept for auth compat)
 // ============================================================
 
 export type PredictionCategory =

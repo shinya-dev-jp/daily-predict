@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
     const { verify_payload, prediction_id } = body;
 
     const appId = process.env.NEXT_PUBLIC_WLD_APP_ID;
-    const action = process.env.NEXT_PUBLIC_WLD_ACTION ?? "daily-predict-verify";
+    const action = process.env.NEXT_PUBLIC_WLD_ACTION ?? "turingvote-vote";
 
     // Log what we received
     const debugInfo: Record<string, unknown> = {

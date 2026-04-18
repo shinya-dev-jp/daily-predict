@@ -7,7 +7,7 @@ export default function PrivacyPolicy() {
       <section className="mb-6">
         <h2 className="text-lg font-semibold text-white mb-2">1. Overview</h2>
         <p>
-          DailyPredict (&quot;the App&quot;) is a prediction game operated as a Mini App within
+          TuringVote (&quot;the App&quot;) is a prediction game operated as a Mini App within
           World App. This Privacy Policy explains how we collect, use, and protect your information.
         </p>
       </section>

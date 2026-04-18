@@ -2,7 +2,7 @@ import { createHmac, timingSafeEqual } from "crypto";
 import type { NextRequest } from "next/server";
 
 /**
- * Lightweight HMAC-based session token for DailyPredict.
+ * Lightweight HMAC-based session token for TuringVote.
  *
  * Why this exists
  * ───────────────

@@ -1,7 +1,13 @@
 {
-  "app.title": "DailyPredict",
+  "app.title": "TuringVote",
   "app.offline": "オフラインです。一部の機能が利用できません。",
   "app.verified": "認証済み",
+  "app.footer": "1人の検証済み人間 · 1票 · 変更不可",
+
+  "vote.loading": "質問を準備中…",
+  "vote.you": "← あなた",
+  "vote.totalVoters": "{n}人の検証済み人間が回答しました",
+  "vote.next": "次の質問",
 
   "tabs.predict": "予測",
   "tabs.results": "結果",
@@ -82,14 +88,14 @@
   "profile.legendWrong": "不正解",
   "profile.legendMissed": "未参加",
 
-  "verify.subtitle": "世界中の認証済みユーザーと一緒に、現実世界の出来事を予測しよう。",
-  "verify.feature1": "毎日1つの質問にYes/Noで投票",
-  "verify.feature2": "認証済みの人間だけが参加可能",
-  "verify.feature3": "ポイントを稼いでランキングを上げよう",
+  "verify.subtitle": "AIでは答えられない中立な2択。検証済み人間だけが答えるミラー。",
+  "verify.feature1": "中立な2択の質問に A または B で投票",
+  "verify.feature2": "検証済み人間のみが参加可能",
+  "verify.feature3": "他の人間がどう答えたかを見る",
   "verify.button": "World ウォレットでサインイン",
   "verify.verifying": "サインイン中...",
   "verify.notInWorldApp": "World App の中でこのアプリを開いてサインインしてください。",
-  "verify.footer": "World ウォレットでサインイン — 1人1票",
+  "verify.footer": "1人の検証済み人間 · 1票",
 
   "predict.verifiedOnly": "認証済み人間のみ",
   "predict.verifying": "World IDで認証中...",

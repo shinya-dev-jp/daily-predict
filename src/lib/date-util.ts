@@ -1,5 +1,5 @@
 /**
- * Date / timezone utilities for DailyPredict.
+ * Date / timezone utilities for TuringVote.
  *
  * Why this exists
  * ───────────────

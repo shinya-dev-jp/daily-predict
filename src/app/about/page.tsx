@@ -93,21 +93,12 @@ export default function AboutPage() {
         <h2 className="text-lg font-semibold text-white mb-4">Apps</h2>
 
         <AppCard
-          name="DailyPredict"
+          name="TuringVote"
           category="Social"
-          tagline="Predict today. Compete globally."
-          description="DailyPredict delivers one question every day — crypto, sports, weather, and world events. Vote Yes or No, see how your prediction stacks up against users worldwide, and climb the leaderboard. Build prediction streaks, earn points, and unlock badges. Verified humans only — every prediction counts."
-          worldAppUrl="https://worldcoin.org/mini-app?app_id=app_9ea9956fcd3bcb53a6accf1e93383e22"
-          webUrl="https://daily-predict-two.vercel.app"
-        />
-
-        <AppCard
-          name="MealPact"
-          category="Productivity"
-          tagline="AI calorie tracker with WLD commitment."
-          description="MealPact combines AI-powered food analysis with a commitment challenge. Snap a photo of your meal, let AI instantly calculate calories and nutrients, and join weekly challenges where you deposit 0.1 WLD. Log meals for 5+ days and earn your deposit back plus bonus from dropouts. Build healthy habits with real stakes and real rewards."
-          worldAppUrl="https://worldcoin.org/mini-app?app_id=app_a9be675be0fb8e8f06da1a0f6a5194d1"
-          webUrl="https://mealpact.vercel.app"
+          tagline="Verified-human only 2-choice polls."
+          description="TuringVote asks simple, neutral 2-choice questions — the kind an AI cannot honestly prefer. Tap A or B, and see how other Verified Humans chose. No prizes, no predictions, no right answers — just a mirror of how people actually decide. One nullifier, one vote per question. Verified humans only."
+          worldAppUrl="https://worldcoin.org/mini-app?app_id=PLACEHOLDER_TURINGVOTE_APP_ID"
+          webUrl="https://turingvote.vercel.app"
         />
       </section>
 
