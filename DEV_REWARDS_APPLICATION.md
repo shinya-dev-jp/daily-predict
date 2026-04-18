@@ -1,7 +1,7 @@
-# Daily Predict — Developer Rewards Pilot Application
+# DailyPredict — Developer Rewards Pilot Application
 
 ## App Name
-Daily Predict
+DailyPredict
 
 ## App ID
 app_9ea9956fcd3bcb53a6accf1e93383e22

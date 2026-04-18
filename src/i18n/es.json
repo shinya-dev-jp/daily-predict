@@ -1,5 +1,5 @@
 {
-  "app.title": "Daily Predict",
+  "app.title": "DailyPredict",
   "app.offline": "Sin conexión. Algunas funciones no estarán disponibles.",
   "app.verified": "Verificado",
 
@@ -95,11 +95,15 @@
   "predict.verifying": "Verificando con World ID...",
 
   "category.crypto": "Cripto",
+  "category.stocks": "Bolsa",
+  "category.forex": "Divisas",
   "category.sports": "Deportes",
   "category.weather": "Clima",
   "category.tech": "Tecnología",
-  "category.world": "World",
+  "category.world": "Mundial",
   "category.entertainment": "Entretenimiento",
+
+  "calendar.weekdays": "Lu,Ma,Mi,Ju,Vi,Sá,Do",
 
   "wld.ifCorrect": "+0.001 WLD si aciertas",
   "wld.comingSoon": "Próximamente",

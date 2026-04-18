@@ -9,8 +9,12 @@ tomorrow.setHours(23, 59, 59, 0);
 
 export const todayPrediction: Prediction = {
   id: "demo-2026-03-31",
-  question_en: "Will Bitcoin go up tomorrow?",
-  question_ja: "明日、ビットコインの価格は上がると思う？",
+  question_en: "Bitcoin (BTC) was $84,500 at voting open. Will it be higher at voting close?",
+  question_ja: "ビットコイン（BTC）は投票開始時に$84,500でした。投票終了時に上がっている？",
+  question_es: "Bitcoin (BTC) estaba en $84,500 al abrir. ¿Estará más alto al cierre?",
+  question_ko: "비트코인(BTC)은 투표 시작 시 $84,500이었습니다. 마감 시 더 높아질까요?",
+  question_th: "Bitcoin (BTC) อยู่ที่ $84,500 ตอนเปิดโหวต จะสูงขึ้นตอนปิดไหม?",
+  question_pt: "Bitcoin (BTC) estava em $84,500 na abertura. Vai estar mais alto no fechamento?",
   option_a: "Yes",
   option_b: "No",
   category: "crypto",
@@ -20,6 +24,15 @@ export const todayPrediction: Prediction = {
   option_a_percent: 58,
   vote_count: 2847,
   created_at: new Date().toISOString(),
+  meta: {
+    reference_price: 84500,
+    reference_time: new Date().toISOString(),
+    asset_id: "bitcoin",
+    asset_ticker: "BTC",
+    asset_name: "Bitcoin",
+    source: "coingecko",
+    category: "crypto",
+  },
 };
 
 // ============================================================
@@ -32,17 +45,30 @@ yesterday.setHours(23, 59, 59, 0);
 
 export const yesterdayPrediction: Prediction = {
   id: "demo-2026-03-30",
-  question_en: "Will the Japanese stock market go up today?",
-  question_ja: "今日、日本の株式市場は上がると思う？",
+  question_en: "Ethereum (ETH) was $1,620 at voting open. Will it be higher at voting close?",
+  question_ja: "イーサリアム（ETH）は投票開始時に$1,620でした。投票終了時に上がっている？",
+  question_es: "Ethereum (ETH) estaba en $1,620 al abrir. ¿Estará más alto al cierre?",
+  question_ko: "이더리움(ETH)은 투표 시작 시 $1,620이었습니다. 마감 시 더 높아질까요?",
+  question_th: "Ethereum (ETH) อยู่ที่ $1,620 ตอนเปิดโหวต จะสูงขึ้นตอนปิดไหม?",
+  question_pt: "Ethereum (ETH) estava em $1,620 na abertura. Vai estar mais alto no fechamento?",
   option_a: "Yes",
   option_b: "No",
-  category: "world",
+  category: "crypto",
   status: "resolved",
   closes_at: yesterday.toISOString(),
   result: "A",
   option_a_percent: 62,
   vote_count: 3104,
   created_at: yesterday.toISOString(),
+  meta: {
+    reference_price: 1620,
+    reference_time: yesterday.toISOString(),
+    asset_id: "ethereum",
+    asset_ticker: "ETH",
+    asset_name: "Ethereum",
+    source: "coingecko",
+    category: "crypto",
+  },
 };
 
 // ============================================================
@@ -86,8 +112,10 @@ export const CATEGORY_META: Record<
   { label: string; color: string; bg: string; iconName: string }
 > = {
   crypto:        { label: "Crypto",         color: "text-[#F7931A]",   bg: "bg-[#F7931A]/15",   iconName: "bitcoin" },
-  sports:        { label: "Sports",          color: "text-[#00C230]",   bg: "bg-[#00C230]/15",   iconName: "trophy" },
+  stocks:        { label: "Stocks",          color: "text-[#06B6D4]",   bg: "bg-[#06B6D4]/15",   iconName: "trending-up" },
   weather:       { label: "Weather",         color: "text-[#38BDF8]",   bg: "bg-[#38BDF8]/15",   iconName: "cloud-sun" },
+  forex:         { label: "Forex",           color: "text-[#10B981]",   bg: "bg-[#10B981]/15",   iconName: "globe" },
+  sports:        { label: "Sports",          color: "text-[#00C230]",   bg: "bg-[#00C230]/15",   iconName: "trophy" },
   tech:          { label: "Tech",            color: "text-[#A78BFA]",   bg: "bg-[#A78BFA]/15",   iconName: "cpu" },
   world:         { label: "World",           color: "text-[#FB923C]",   bg: "bg-[#FB923C]/15",   iconName: "globe" },
   entertainment: { label: "Entertainment",   color: "text-[#F472B6]",   bg: "bg-[#F472B6]/15",   iconName: "clapperboard" },

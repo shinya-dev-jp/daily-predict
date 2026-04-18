@@ -33,6 +33,7 @@ const CATEGORY_ICON: Record<string, React.ComponentType<{ className?: string }>>
   cpu: Cpu,
   globe: Globe,
   clapperboard: Clapperboard,
+  "trending-up": TrendingUp,
 };
 
 // ============================================================
@@ -112,6 +113,40 @@ function CountdownDisplay({ closesAt }: { closesAt: string }) {
       <span className="font-mono font-semibold text-white/80 tabular-nums">
         {hours > 0 && <>{pad(hours)}h </>}
         {pad(minutes)}m {pad(seconds)}s
+      </span>
+    </div>
+  );
+}
+
+// ============================================================
+// UTC + Local time display for voting window
+// ============================================================
+
+function VotingTimeDisplay({ prediction }: { prediction: Prediction }) {
+  const { t } = useI18n();
+  const meta = prediction.meta as { reference_time?: string } | null;
+  const openTime = meta?.reference_time ?? prediction.created_at;
+  const closeTime = prediction.closes_at;
+
+  const formatTime = (iso: string) => {
+    const d = new Date(iso);
+    const utc = d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "UTC" });
+    const local = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone?.split("/").pop()?.replace(/_/g, " ") ?? "";
+    return { utc, local, tz };
+  };
+
+  const open = formatTime(openTime);
+  const close = formatTime(closeTime);
+
+  return (
+    <div className="flex items-center justify-center gap-4 text-[10px] text-white/30 mt-1">
+      <span>
+        {t("predict.open") ?? "Open"}: {open.utc} UTC ({open.local})
+      </span>
+      <span className="text-white/15">→</span>
+      <span>
+        {t("predict.close") ?? "Close"}: {close.utc} UTC ({close.local})
       </span>
     </div>
   );
@@ -328,6 +363,13 @@ export function PredictScreen({
   const [chosen, setChosen] = useState<"A" | "B" | null>(alreadyVoted);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [voteError, setVoteError] = useState<string | null>(null);
+
+  // Sync alreadyVoted prop → chosen state (check API may resolve after mount)
+  useEffect(() => {
+    if (alreadyVoted && !chosen) {
+      setChosen(alreadyVoted);
+    }
+  }, [alreadyVoted, chosen]);
   const { t, locale: i18nLocale } = useI18n();
 
   const effectiveLocale = locale ?? i18nLocale;
@@ -494,6 +536,9 @@ export function PredictScreen({
                 <span className="text-red-400 text-xs font-medium text-center">{voteError}</span>
               </div>
             )}
+
+            {/* Voting window times (UTC + local) */}
+            <VotingTimeDisplay prediction={prediction} />
 
             {/* Fine print */}
             <p className="text-white/25 text-[11px] mt-0.5 text-center">

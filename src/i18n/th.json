@@ -1,5 +1,5 @@
 {
-  "app.title": "Daily Predict",
+  "app.title": "DailyPredict",
   "app.offline": "คุณออฟไลน์อยู่ บางฟีเจอร์อาจใช้งานไม่ได้",
   "app.verified": "ยืนยันแล้ว",
 
@@ -95,11 +95,15 @@
   "predict.verifying": "กำลังยืนยันด้วย World ID...",
 
   "category.crypto": "คริปโต",
+  "category.stocks": "หุ้น",
+  "category.forex": "อัตราแลกเปลี่ยน",
   "category.sports": "กีฬา",
   "category.weather": "สภาพอากาศ",
   "category.tech": "เทคโนโลยี",
   "category.world": "โลก",
   "category.entertainment": "บันเทิง",
+
+  "calendar.weekdays": "จ,อ,พ,พฤ,ศ,ส,อา",
 
   "wld.ifCorrect": "ทายถูกได้ +0.001 WLD",
   "wld.comingSoon": "เร็วๆ นี้",

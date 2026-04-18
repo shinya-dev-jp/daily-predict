@@ -1,5 +1,5 @@
 /**
- * Date / timezone utilities for Daily Predict.
+ * Date / timezone utilities for DailyPredict.
  *
  * Why this exists
  * ───────────────

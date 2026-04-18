@@ -93,10 +93,10 @@ export default function AboutPage() {
         <h2 className="text-lg font-semibold text-white mb-4">Apps</h2>
 
         <AppCard
-          name="Daily Predict"
+          name="DailyPredict"
           category="Social"
           tagline="Predict today. Compete globally."
-          description="Daily Predict delivers one question every day — crypto, sports, weather, and world events. Vote Yes or No, see how your prediction stacks up against users worldwide, and climb the leaderboard. Build prediction streaks, earn points, and unlock badges. Verified humans only — every prediction counts."
+          description="DailyPredict delivers one question every day — crypto, sports, weather, and world events. Vote Yes or No, see how your prediction stacks up against users worldwide, and climb the leaderboard. Build prediction streaks, earn points, and unlock badges. Verified humans only — every prediction counts."
           worldAppUrl="https://worldcoin.org/mini-app?app_id=app_9ea9956fcd3bcb53a6accf1e93383e22"
           webUrl="https://daily-predict-two.vercel.app"
         />

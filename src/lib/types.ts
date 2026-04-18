@@ -4,7 +4,9 @@
 
 export type PredictionCategory =
   | "crypto"
+  | "stocks"
   | "weather"
+  | "forex"
   | "sports"
   | "tech"
   | "world"
@@ -43,6 +45,8 @@ export interface Prediction {
   /** Total number of votes cast */
   vote_count: number;
   created_at: string;
+  /** Metadata for template-based questions (reference price, asset, etc.) */
+  meta?: Record<string, unknown> | null;
 }
 
 // ============================================================

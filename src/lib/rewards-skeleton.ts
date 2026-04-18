@@ -1,13 +1,13 @@
 /**
  * ============================================================================
- * Daily Predict — Login Rewards Distribution (SKELETON, not yet wired)
+ * DailyPredict — Login Rewards Distribution (SKELETON, not yet wired)
  * ============================================================================
  *
  * Phase 3 implementation, activated AFTER Grants funds are received.
  * Design rationale lives in GRANTS_APPLICATION.md → "WLD Distribution Design".
  *
  * Activation checklist (do NOT enable until all true):
- *   1. Daily Predict app review approved by Worldcoin (live in World App)
+ *   1. DailyPredict app review approved by Worldcoin (live in World App)
  *   2. Spark Track grant received (treasury funded with WLD)
  *   3. DAU > 500 (so login bonus drives positive ROI)
  *   4. Supabase migration applied (user_streaks + reward_payouts tables)

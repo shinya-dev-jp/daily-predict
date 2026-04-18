@@ -1,5 +1,5 @@
 {
-  "app.title": "Daily Predict",
+  "app.title": "DailyPredict",
   "app.offline": "オフラインです。一部の機能が利用できません。",
   "app.verified": "認証済み",
 
@@ -95,11 +95,15 @@
   "predict.verifying": "World IDで認証中...",
 
   "category.crypto": "仮想通貨",
+  "category.stocks": "株式",
+  "category.forex": "為替",
   "category.sports": "スポーツ",
   "category.weather": "天気",
   "category.tech": "テクノロジー",
-  "category.world": "World",
+  "category.world": "世界",
   "category.entertainment": "エンタメ",
+
+  "calendar.weekdays": "月,火,水,木,金,土,日",
 
   "wld.ifCorrect": "正解で +0.001 WLD",
   "wld.comingSoon": "近日公開",

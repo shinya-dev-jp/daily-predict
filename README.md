@@ -1,4 +1,4 @@
-# Daily Predict
+# DailyPredict
 
 A daily prediction game for World App. Verified humans make one prediction per day and compete for WLD rewards.
 

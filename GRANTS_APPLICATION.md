@@ -1,10 +1,10 @@
-# Daily Predict — World Foundation Grants Application (Spark Track)
+# DailyPredict — World Foundation Grants Application (Spark Track)
 
 ## Problem Statement
 In a world flooded with AI-generated opinions and bot activity, there is no way to know what *real humans* think about tomorrow's events. Existing prediction markets (Polymarket, Kalshi) require real money and attract speculators, not everyday people. There is no casual, free, daily prediction game that guarantees one-person-one-vote through proof of personhood.
 
 ## Solution
-Daily Predict is a free daily prediction game where World ID-verified humans vote on real-world outcomes. One question per day. One vote per person. Results the next day. Simple.
+DailyPredict is a free daily prediction game where World ID-verified humans vote on real-world outcomes. One question per day. One vote per person. Results the next day. Simple.
 
 ## Key Features (Live)
 - World ID Orb-level verification via IDKit (sybil-resistant, orbLegacy preset)
@@ -43,7 +43,7 @@ Daily Predict is a free daily prediction game where World ID-verified humans vot
 
 ## WLD Distribution Design (Phase 3 — Post-Grant Launch)
 
-Daily Predict is designed to **return a portion of received grants back to verified human users** as a retention mechanism. This creates a direct flywheel between Grant funding and ecosystem DAU.
+DailyPredict is designed to **return a portion of received grants back to verified human users** as a retention mechanism. This creates a direct flywheel between Grant funding and ecosystem DAU.
 
 ### Design: 7-Day Streak Login Rewards
 
@@ -86,7 +86,7 @@ Per-year max: 0.832 WLD per user
 | 5,000 | 4,160 | $8,320 |
 | 10,000 | 8,320 | $16,640 |
 
-With a 1,000 WLD treasury allocation, Daily Predict can sustain 1,000 active users for ~10 months without additional funding. This is directly visible to users via the in-app Rewards History page.
+With a 1,000 WLD treasury allocation, DailyPredict can sustain 1,000 active users for ~10 months without additional funding. This is directly visible to users via the in-app Rewards History page.
 
 ### CS Cost Minimization
 

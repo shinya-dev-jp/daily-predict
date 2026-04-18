@@ -167,7 +167,7 @@ function WalletAuthScreen({
 
       const { finalPayload } = await MiniKit.commandsAsync.walletAuth({
         nonce,
-        statement: "Sign in to Daily Predict",
+        statement: "Sign in to DailyPredict",
         expirationTime: new Date(Date.now() + 1000 * 60 * 10),
       });
 
@@ -222,7 +222,7 @@ function WalletAuthScreen({
           <div className="absolute inset-0 bg-[#06B6D4]/20 rounded-3xl blur-xl scale-110" />
           <Image
             src="/app-icon-small.png"
-            alt="Daily Predict"
+            alt="DailyPredict"
             width={88}
             height={88}
             className="rounded-2xl relative shadow-2xl shadow-[#4338CA]/30"
@@ -230,7 +230,7 @@ function WalletAuthScreen({
         </div>
 
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-white mb-2 tracking-tight">Daily Predict</h1>
+          <h1 className="text-2xl font-bold text-white mb-2 tracking-tight">DailyPredict</h1>
           <p className="text-[#94A3B8] text-sm leading-relaxed max-w-[280px]">
             {t("verify.subtitle")}
           </p>
@@ -343,6 +343,9 @@ function DailyPredictApp() {
   const todayPrediction = currentPrediction;
   const yesterdayData = yesterdayPrediction;
   const isAuthenticated = !!walletAddress;
+  // Show wallet-auth screen if user hasn't signed in yet.
+  // ?preview=1 bypasses for dev/screenshot purposes (no real voting possible)
+  const isPreview = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("preview") === "1";
   // Empty placeholder profile for authenticated users awaiting API load —
   // prevents demo values (streak=7, points=1200) flashing in the header.
   const emptyProfile = {
@@ -356,7 +359,8 @@ function DailyPredictApp() {
     accuracy: 0,
     badges: [],
   };
-  const profile = userProfile ?? (isAuthenticated ? emptyProfile : demoUserProfile);
+  // In preview mode always use demoUserProfile so stats are visible
+  const profile = userProfile ?? (isPreview ? demoUserProfile : (isAuthenticated ? emptyProfile : demoUserProfile));
 
   const handleAuthSuccess = useCallback((address: string, userProfile: unknown, authToken: string) => {
     if (userProfile) {
@@ -364,9 +368,6 @@ function DailyPredictApp() {
     }
   }, [onAuthenticated]);
 
-  // Show wallet-auth screen if user hasn't signed in yet.
-  // ?preview=1 bypasses for dev/screenshot purposes (no real voting possible)
-  const isPreview = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("preview") === "1";
   if (!walletAddress && !isPreview) {
     return <WalletAuthScreen onAuthSuccess={handleAuthSuccess} />;
   }
@@ -403,12 +404,12 @@ function DailyPredictApp() {
         <div className="flex items-center gap-2">
           <Image
             src="/app-icon-small.png"
-            alt="Daily Predict"
+            alt="DailyPredict"
             width={28}
             height={28}
             className="rounded-lg"
           />
-          <span className="font-bold text-white text-sm tracking-tight">Daily Predict</span>
+          <span className="font-bold text-white text-sm tracking-tight">DailyPredict</span>
         </div>
         <div className="flex items-center gap-1.5">
           <LanguageToggle />

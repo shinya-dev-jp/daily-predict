@@ -25,7 +25,7 @@ import { logError, logInfo } from "@/lib/server-log";
  * understands — so all downstream endpoints (predict / profile / leaderboard /
  * predict-check / events) keep working without changes.
  *
- * This route is the **only** login surface in Daily Predict. The previous
+ * This route is the **only** login surface in DailyPredict. The previous
  * IDKit-based /api/verify route was rejected by the World App review team
  * ("use wallet auth to login"); this is its replacement.
  */

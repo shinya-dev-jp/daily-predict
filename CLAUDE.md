@@ -1,9 +1,9 @@
-# CLAUDE.md — Daily Predict プロジェクト指示書
+# CLAUDE.md — DailyPredict プロジェクト指示書
 
 このファイルは Claude Code がこのリポジトリで作業する際に **最初に読む** 設定ファイルです。
 
 ## プロジェクト概要
-Daily Predict は World App 内で動く Mini App。World ID で認証されたユーザーが毎日1問の予測（Yes/No）を投票し、ストリーク・ランキングを競うゲーム。
+DailyPredict は World App 内で動く Mini App。World ID で認証されたユーザーが毎日1問の予測（Yes/No）を投票し、ストリーク・ランキングを競うゲーム。
 
 - **スタック**: Next.js 16.2.1 / React 19 / TypeScript / Supabase / IDKit (orbLegacy preset) / Anthropic SDK / Tailwind 4
 - **本番URL**: https://daily-predict-two.vercel.app

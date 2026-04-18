@@ -1,4 +1,4 @@
-# Daily Predict -- Operational Runbook
+# DailyPredict -- Operational Runbook
 
 ## Dashboards
 

@@ -5,7 +5,7 @@ import "./globals.css";
 
 const BASE_URL = "https://daily-predict-two.vercel.app";
 
-const TITLE = "Daily Predict — A daily prediction game for verified humans";
+const TITLE = "DailyPredict — A daily prediction game for verified humans";
 const DESCRIPTION =
   "Vote on real-world outcomes once a day. Verified humans only via World ID. Build streaks, climb the leaderboard, see what the crowd thinks.";
 
@@ -13,11 +13,11 @@ export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
   title: {
     default: TITLE,
-    template: "%s | Daily Predict",
+    template: "%s | DailyPredict",
   },
   description: DESCRIPTION,
   keywords: [
-    "Daily Predict",
+    "DailyPredict",
     "World ID",
     "World App",
     "Mini App",
@@ -26,14 +26,14 @@ export const metadata: Metadata = {
     "verified humans",
     "proof of personhood",
   ],
-  authors: [{ name: "Daily Predict" }],
-  creator: "Daily Predict",
+  authors: [{ name: "DailyPredict" }],
+  creator: "DailyPredict",
   openGraph: {
     type: "website",
     locale: "en_US",
     alternateLocale: ["ja_JP", "es_ES", "ko_KR", "th_TH", "pt_BR"],
     url: BASE_URL,
-    siteName: "Daily Predict",
+    siteName: "DailyPredict",
     title: TITLE,
     description: DESCRIPTION,
     // No image referenced — Next.js will fall back to the icons defined below.

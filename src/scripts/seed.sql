@@ -1,4 +1,4 @@
--- Seed prediction for testing Daily Predict app
+-- Seed prediction for testing DailyPredict app
 -- Run this in the Supabase SQL Editor
 
 INSERT INTO predictions (question_en, question_ja, option_a, option_b, category, status, closes_at, vote_count, option_a_votes)

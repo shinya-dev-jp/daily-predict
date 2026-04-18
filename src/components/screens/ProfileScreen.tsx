@@ -29,7 +29,7 @@ import { useI18n } from "@/i18n";
 // Helpers
 // ---------------------------------------------------------------------------
 
-const WEEKDAYS = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
+// Weekdays are now loaded from i18n (see CalendarHeatmap)
 
 const MONTH_NAMES = [
   "January", "February", "March", "April", "May", "June",
@@ -105,7 +105,7 @@ function AccuracyHero({ profile }: { profile: typeof DEMO_USER_PROFILE }) {
             >
               <div className="h-14 w-14 rounded-full bg-[#1e3a5f] flex items-center justify-center flex-col">
                 <span className="text-xl font-bold leading-none">{p.accuracy}%</span>
-                <span className="text-[9px] text-white/60 mt-0.5">Accuracy</span>
+                <span className="text-[9px] text-white/60 mt-0.5">{t("profile.accuracy")}</span>
               </div>
             </div>
           </div>
@@ -170,7 +170,7 @@ function CalendarHeatmap({ year, month, calendarData }: {
       </div>
 
       <div className="grid grid-cols-7 gap-1 text-center mb-1">
-        {WEEKDAYS.map((d) => (
+        {t("calendar.weekdays").split(",").map((d) => (
           <span key={d} className="text-[10px] text-white/40 font-medium">{d}</span>
         ))}
       </div>
@@ -257,7 +257,7 @@ function RecentPredictions({
               </div>
               <div className="flex items-center gap-3 flex-wrap">
                 <span className="text-[10px] text-white/40">
-                  Your answer:{" "}
+                  {t("profile.yourAnswer")}{" "}
                   <span
                     className={`font-semibold ${
                       item.is_correct
@@ -270,7 +270,7 @@ function RecentPredictions({
                 </span>
                 {!item.is_correct && (
                   <span className="text-[10px] text-white/40">
-                    Correct:{" "}
+                    {t("profile.correctAnswer")}{" "}
                     <span className="font-semibold text-[rgb(0,194,48)]">
                       {item.correct_choice_label}
                     </span>
@@ -314,7 +314,7 @@ function BadgesSection({
             <motion.div
               key={badge.id}
               whileHover={{ scale: 1.05 }}
-              className={`flex flex-col items-center gap-1 p-3 rounded-2xl bg-[#252152]${earned.length % 2 !== 0 && idx === earned.length - 1 ? " col-span-2" : ""}`}
+              className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-[#252152]"
             >
               <div className="h-8 w-8 rounded-full bg-[rgb(0,194,48)]/15 flex items-center justify-center">
                 <BadgeIcon
@@ -345,7 +345,7 @@ function BadgesSection({
             {locked.map((badge, idx) => (
               <div
                 key={badge.id}
-                className={`flex flex-col items-center gap-1 p-3 rounded-2xl bg-[#252152] opacity-45${locked.length % 2 !== 0 && idx === locked.length - 1 ? " col-span-2" : ""}`}
+                className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-[#252152] opacity-45"
               >
                 <div className="h-8 w-8 rounded-full bg-[#3B366E] flex items-center justify-center">
                   <Lock className="h-4 w-4 text-white/30" />
