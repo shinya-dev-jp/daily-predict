@@ -109,6 +109,6 @@ Spark-level grant to cover:
 
 ## Links
 - Live App: https://daily-predict-two.vercel.app
-- Developer Portal: app_9ea9956fcd3bcb53a6accf1e93383e22
+- Developer Portal: app_30c7b1a4127cca75b14c1abb6a024d46
 - Privacy Policy: https://daily-predict-two.vercel.app/privacy
 - Terms of Service: https://daily-predict-two.vercel.app/terms

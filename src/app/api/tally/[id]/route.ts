@@ -1,6 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { logError } from "@/lib/server-log";
+import questionsData from "@/data/tc_questions.json";
+
+// C2 / Evaluator Round 2 — vote route と同じ "存在する ID のみ" チェックを
+// tally route にも適用。これまでは Number.isFinite だけで通していたため、
+// 存在しない ID や小数を投げ込むと 0/0/0 の tally が返り、UI に架空の質問の
+// 投票結果が表示されるリスクがあった。
+const VALID_QUESTION_IDS = new Set<number>(
+  (questionsData as { questions: { id: number }[] }).questions.map((q) => q.id),
+);
 
 /**
  * GET /api/tally/[id]
@@ -18,7 +27,11 @@ export async function GET(
   const { id } = await params;
   const questionId = Number(id);
 
-  if (!Number.isFinite(questionId)) {
+  if (
+    !Number.isInteger(questionId) ||
+    questionId <= 0 ||
+    !VALID_QUESTION_IDS.has(questionId)
+  ) {
     return NextResponse.json({ error: "invalid id" }, { status: 400 });
   }
 

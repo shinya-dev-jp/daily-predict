@@ -14,6 +14,17 @@ out/
 .env.development.local
 .env.test.local
 .env.production.local
+.env.vercel.check
+.env.vercel.*
+.env.local.bak.*
+
+# Harness preflight outputs (regenerable per run)
+.harness_preflight_report.json
+.harness_preflight_report.md
+
+# Review/capture artifacts
+_review_screenshots/
+public/_temp_capture/
 
 # Vercel
 .vercel
@@ -41,3 +52,4 @@ yarn-error.log*
 # Testing
 coverage/
 .keys/
+.env*.local

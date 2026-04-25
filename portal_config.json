@@ -1,9 +1,9 @@
 {
   "basic": {
-    "app_name": "DailyPredict",
+    "app_name": "TuringVote",
     "publisher": "Shinya Dev",
-    "app_url": "https://daily-predict-two.vercel.app",
-    "official_website": "https://daily-predict-two.vercel.app",
+    "app_url": "https://turingvote.vercel.app",
+    "official_website": "https://turingvote.vercel.app/about",
     "is_mini_app": true,
     "compliance_gambling": false,
     "verified_humans_only": true,
@@ -25,44 +25,20 @@
 
   "countries": "all",
 
-  "languages": ["en", "ja", "ko", "es", "pt", "th"],
+  "languages": ["en", "ja"],
 
   "localisations": {
     "en": {
-      "app_name": "DailyPredict",
-      "short_name": "DailyPred",
-      "tag_line": "Predict today. Compete globally.",
-      "description": "DailyPredict delivers one question every day — crypto, sports, weather, and world events. Vote Yes or No, see how your prediction stacks up against users worldwide, and climb the leaderboard. Build prediction streaks, earn points, and unlock badges. Verified humans only — every prediction counts."
+      "app_name": "TuringVote",
+      "short_name": "TuringVote",
+      "tag_line": "Two choices. Real humans. No ranking.",
+      "description": "TuringVote is a pure two-choice poll app for Verified Humans only. Tap A or B on short neutral questions — morning person or night owl, coffee or tea, logic or intuition, stability or challenge, honesty or kindness — and see how other Verified Humans split. Answer five in a row to get a one-screen summary showing whether you lean majority or minority. No points, no streaks, no rewards, no leaderboard. Just how Verified Humans of World App actually split on each question."
     },
     "ja": {
-      "app_name": "DailyPredict",
-      "short_name": "DailyPred",
-      "tag_line": "毎日1問で世界と勝負。",
-      "description": "DailyPredictは毎日1問を配信する予測アプリです。仮想通貨・スポーツ・天気・世界の出来事からYes/Noで投票し、世界中のユーザーと結果を比較。ランキングを駆け上がり、ストリークを伸ばしてバッジを獲得しましょう。認証済みユーザー限定 — あなたの予測が結果を動かします。"
-    },
-    "ko": {
-      "app_name": "DailyPredict",
-      "short_name": "DailyPred",
-      "tag_line": "매일 1문제로 세계와 경쟁.",
-      "description": "DailyPredict는 매일 하나의 질문을 제공합니다. 암호화폐, 스포츠, 날씨, 세계 이슈에 대해 Yes/No로 투표하고 전 세계 사용자와 결과를 비교하세요. 리더보드를 오르고 스트릭을 쌓아 배지를 획득하세요. 인증된 사용자 전용."
-    },
-    "es": {
-      "app_name": "DailyPredict",
-      "short_name": "DailyPred",
-      "tag_line": "Predice hoy. Compite globalmente.",
-      "description": "DailyPredict ofrece una pregunta cada día sobre cripto, deportes, clima y eventos mundiales. Vota Sí o No, compara tu predicción con usuarios de todo el mundo y escala el tablero. Construye rachas, gana puntos y desbloquea insignias. Solo humanos verificados."
-    },
-    "pt": {
-      "app_name": "DailyPredict",
-      "short_name": "DailyPred",
-      "tag_line": "Preveja hoje. Compita globalmente.",
-      "description": "DailyPredict entrega uma pergunta por dia sobre cripto, esportes, clima e eventos mundiais. Vote Sim ou Não, compare sua previsão com usuários do mundo todo e suba no placar. Construa sequências, ganhe pontos e desbloqueie conquistas. Apenas humanos verificados."
-    },
-    "th": {
-      "app_name": "DailyPredict",
-      "short_name": "DailyPred",
-      "tag_line": "ทายวันนี้ แข่งทั่วโลก",
-      "description": "DailyPredict นำเสนอคำถามทุกวัน — คริปโต กีฬา สภาพอากาศ และเหตุการณ์โลก โหวต Yes หรือ No เปรียบเทียบผลกับผู้ใช้ทั่วโลก ขึ้นลีดเดอร์บอร์ด สร้างสตรีค สะสมคะแนน และปลดล็อกแบดจ์ เฉพาะมนุษย์ที่ผ่านการยืนยันเท่านั้น"
+      "app_name": "TuringVote",
+      "short_name": "TuringVote",
+      "tag_line": "認証人間の2択。ランキングなし。",
+      "description": "TuringVoteは認証済み人間だけが参加できる純粋な2択投票アプリです。朝型/夜型、コーヒー/お茶、論理/直感、安定/挑戦、正直/優しさなどの中立的な2択にAかBをタップすると、他の認証済み人間がどちらに分かれたかが即座にわかります。5問連続で回答するとあなたが多数派寄りか少数派寄りかのサマリーが出ます。ポイント・ストリーク・報酬・ランキングは一切なし。World App の認証済み人間が各設問にどう分かれたかだけに特化しました。"
     }
   },
 
@@ -73,10 +49,17 @@
   },
 
   "_notes": {
-    "status": "In Review — Un-submit → テキスト更新 → 再Submit が必要",
+    "status": "Ready for first submission.",
     "tag_line_char_count": {
-      "en": 34,
-      "ja": 14
-    }
+      "en": 37,
+      "ja": 15
+    },
+    "description_example_categories": "preference(morning/coffee) + style(logic) + values(stability/honesty) を明示して tc_questions.json の 30問分布(values 43%/preference 23%/style 17%/lifestyle 13%/ethics 3%)と整合",
+    "languages_rationale": "Round 2 監査で es/ko/pt/th コードを削除済(161行→37行)。portal_config.json も en/ja のみに揃える。",
+    "critical_before_submit": [
+      "app-icon-small.png を Daily Predict ダイヤアイコン → TuringVote vertical-split ロゴに差し替え(512×512)",
+      "content-card.png を Daily Predict UI → TuringVote UI に差し替え(1035×720・Antigravity 発注)",
+      "showcase-1/2/3.png を Daily Predict UI → TuringVote ライブ UI スクショに差し替え(1080×1080・Chrome MCP 自動取得可)"
+    ]
   }
 }

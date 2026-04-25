@@ -4,7 +4,7 @@
 DailyPredict
 
 ## App ID
-app_9ea9956fcd3bcb53a6accf1e93383e22
+app_30c7b1a4127cca75b14c1abb6a024d46
 
 ## App URL
 https://daily-predict-two.vercel.app

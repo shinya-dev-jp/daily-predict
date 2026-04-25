@@ -7,7 +7,7 @@ DailyPredict は World App 内で動く Mini App。World ID で認証された�
 
 - **スタック**: Next.js 16.2.1 / React 19 / TypeScript / Supabase / IDKit (orbLegacy preset) / Anthropic SDK / Tailwind 4
 - **本番URL**: https://daily-predict-two.vercel.app
-- **App ID**: app_9ea9956fcd3bcb53a6accf1e93383e22
+- **App ID**: app_30c7b1a4127cca75b14c1abb6a024d46
 - **デプロイ**: Vercel
 - **DB**: Supabase (project: wgszbxgsxekwdmssnvvd)
 

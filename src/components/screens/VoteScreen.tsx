@@ -1,262 +1,405 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { Loader2 } from "lucide-react";
-import { useApp } from "@/components/providers/AppProvider";
+import { useCallback, useRef, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Loader2, ArrowRight, Check } from "lucide-react";
+import { useApp, SESSION_SIZE } from "@/components/providers/AppProvider";
 import { useI18n } from "@/i18n";
-import type { VoteChoice } from "@/lib/types";
+import { ASCII_BAR_WIDTH } from "@/lib/constants";
+import type { VoteChoice, Tally } from "@/lib/types";
 
 // ============================================================
-// QuestionCard
+// "Human Pulse Terminal" — Card-centered terminal-themed vote screen
+// ----------------------------------------------------------------
+// - One question per card. Two big tappable A/B options.
+// - After vote: ASCII bar + percentage + majority/minority verdict.
+// - Terminal-style header: `> turingvote/$ ask N/5 [category]`
 // ============================================================
-function QuestionCard({
-  promptJa,
-  promptEn,
-}: {
-  promptJa: string;
-  promptEn: string;
-}) {
-  const { locale } = useI18n();
-  const prompt = locale === "ja" ? promptJa : promptEn;
-  return (
-    <div className="rounded-2xl bg-[#252152] border border-white/10 px-6 py-8 shadow-[0_4px_16px_rgba(0,0,0,0.25)]">
-      <h1 className="text-2xl font-bold text-white leading-[1.4] text-center">
-        {prompt}
-      </h1>
-    </div>
-  );
+
+function asciiBar(pct: number): string {
+  const filled = Math.round((pct / 100) * ASCII_BAR_WIDTH);
+  return "█".repeat(filled) + "░".repeat(ASCII_BAR_WIDTH - filled);
 }
 
-// ============================================================
-// VoteButton (one of two)
-// ============================================================
-function VoteButton({
-  label,
-  accentHex,
-  glowStyle,
-  state,
-  onClick,
-  disabled,
-}: {
+function ratioA(tally: Tally | null): number {
+  if (!tally || tally.total_votes === 0) return 50;
+  return Math.round((tally.votes_a / tally.total_votes) * 100);
+}
+
+interface OptionRowProps {
+  letter: "A" | "B";
   label: string;
-  accentHex: string;
-  glowStyle: string;
-  state: "default" | "chosen" | "other";
+  picked: boolean;
+  voted: boolean;
+  /** tally が server から返った後だけ bar / % を表示する。optimistic UI の間は false */
+  tallyReady: boolean;
+  pct: number;
+  isUserChoice: boolean;
+  /** R3 Minor fix: aria-label を i18n 化したラベル文字列を親から渡す */
+  ariaRecordingLabel: string;
   onClick: () => void;
-  disabled?: boolean;
-}) {
-  const baseCls =
-    "relative w-full py-5 rounded-xl text-lg font-semibold transition-all duration-150 active:scale-[0.98]";
-  if (state === "chosen") {
-    return (
-      <button
-        type="button"
-        disabled
-        className={baseCls}
-        style={{
-          background: accentHex,
-          color: "#FFFFFF",
-          boxShadow: glowStyle,
-        }}
-      >
-        {label}
-      </button>
-    );
-  }
-  if (state === "other") {
-    return (
-      <button
-        type="button"
-        disabled
-        className={`${baseCls} opacity-50 bg-[#252152] text-white/60 border border-white/10`}
-      >
-        {label}
-      </button>
-    );
-  }
+}
+
+function OptionRow({ letter, label, picked, voted, tallyReady, pct, isUserChoice, ariaRecordingLabel, onClick }: OptionRowProps) {
+  const isA = letter === "A";
+  const accent = isA ? "var(--option-a)" : "var(--option-b)";
+  const accentBg = isA ? "var(--option-a-bg)" : "var(--option-b-bg)";
+  const accentGlow = isA ? "var(--option-a-glow)" : "var(--option-b-glow)";
+
+  // I5: 2択投票は意味論的に radio group。screen reader に選択/未選択の
+  // 状態を伝えるため role="radio" + aria-checked を明示する。投票後は
+  // disabled + aria-disabled で「もう変えられない」ことを通知。
   return (
     <button
       type="button"
+      role="radio"
+      aria-checked={isUserChoice}
+      aria-disabled={voted || undefined}
+      aria-label={`Option ${letter}: ${label}${voted && tallyReady ? ` (${pct}% of voters)` : ""}`}
       onClick={onClick}
-      disabled={disabled}
-      className={`${baseCls} bg-[#252152] text-white border border-white/10 hover:border-white/30 hover:bg-[#2D2960] disabled:opacity-50`}
+      disabled={voted}
+      className="group relative w-full text-left rounded-md border transition-all overflow-hidden"
       style={{
-        // Subtle ring on hover using the accent color
-        ["--tw-ring-color" as string]: accentHex,
+        borderColor: isUserChoice ? accent : "var(--border)",
+        backgroundColor: voted ? accentBg : "transparent",
+        boxShadow: isUserChoice ? `0 0 0 1px ${accent}, 0 6px 28px -12px ${accentGlow}` : "none",
+        cursor: voted ? "default" : "pointer",
       }}
     >
-      {label}
+      {/* row 1: letter prefix, label, % (if voted) */}
+      <div className="flex items-center gap-3 px-4 py-4">
+        <span
+          className="font-mono-feature text-[11px] font-bold tracking-widest shrink-0 w-6 text-center rounded border"
+          style={{
+            color: voted ? accent : "var(--terminal-dim)",
+            borderColor: voted ? accent : "var(--border)",
+            padding: "2px 0",
+          }}
+        >
+          {letter}
+        </span>
+        <span
+          className="text-base sm:text-lg font-semibold leading-tight flex-1 truncate"
+          style={{ color: "var(--foreground)" }}
+        >
+          {label}
+        </span>
+        {/* R2 C2 fix: optimistic UI の視認性強化。
+            voted=true & tallyReady=false の窓(=サーバ応答待ち・典型 300-500ms)
+            で、選択側に Loader2 を瞬時に出す。Shinya 実機「改善してない」
+            の原因は "瞬時反映された視覚変化を知覚できなかった" と推定。
+            選択した option に明示的に spinner を出して "記録中" を知らせる。
+            R3 I-R3-4 fix: a11y — aria-label + role="status" で screen reader
+            に投票記録中の状態を通知(Worldcoin 審査 a11y 基準対応)。*/}
+        {voted && !tallyReady && isUserChoice && (
+          <Loader2
+            className="h-4 w-4 animate-spin shrink-0"
+            style={{ color: accent }}
+            role="status"
+            aria-label={ariaRecordingLabel}
+          />
+        )}
+        {voted && tallyReady && (
+          <motion.span
+            initial={{ opacity: 0, x: -4 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="font-mono-feature text-base font-bold tabular-nums shrink-0"
+            style={{ color: accent }}
+          >
+            {pct}%
+          </motion.span>
+        )}
+      </div>
+
+      {/* row 2: ASCII bar revealed only after tally arrives (optimistic UI fix) */}
+      <AnimatePresence>
+        {voted && tallyReady && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+            className="px-4 pb-3"
+          >
+            <div className="flex items-center justify-between gap-3">
+              <span
+                className="tally-bar text-[14px] truncate"
+                style={{ color: accent, opacity: 0.95 }}
+              >
+                {asciiBar(pct)}
+              </span>
+              {isUserChoice && (
+                <span
+                  className="font-mono-feature text-[10px] font-bold tracking-widest uppercase shrink-0"
+                  style={{ color: accent }}
+                >
+                  ← you
+                </span>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* hover halo on idle state */}
+      {!voted && (
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity"
+          style={{ background: `linear-gradient(90deg, transparent, ${accentBg})` }}
+        />
+      )}
+
+      {picked && voted && !isUserChoice && (
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-0 opacity-25"
+          style={{ background: accentBg }}
+        />
+      )}
     </button>
   );
 }
 
-// ============================================================
-// RevealPanel (shown post-vote)
-// ============================================================
-function RevealPanel({
-  votesA,
-  votesB,
-  total,
-  userVote,
-  labelA,
-  labelB,
-  youLabel,
-  totalLabel,
-}: {
-  votesA: number;
-  votesB: number;
-  total: number;
-  userVote: VoteChoice;
-  labelA: string;
-  labelB: string;
-  youLabel: string;
-  totalLabel: string;
-}) {
-  const pctA = total > 0 ? Math.round((votesA / total) * 100) : 0;
-  const pctB = total > 0 ? 100 - pctA : 0;
-  return (
-    <div className="rounded-2xl bg-[#252152] border border-white/10 p-5 flex flex-col gap-4">
-      {/* Option A row */}
-      <div className="flex flex-col gap-1.5">
-        <div className="flex items-baseline justify-between text-sm">
-          <span className="text-white/90 font-medium">
-            {labelA}
-            {userVote === "A" && (
-              <span className="ml-2 text-[#06B6D4] text-xs font-semibold">
-                {youLabel}
-              </span>
-            )}
-          </span>
-          <span className="text-white/70 tabular-nums">
-            {votesA} <span className="text-white/40">({pctA}%)</span>
-          </span>
-        </div>
-        <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
-          <div
-            className="h-full bg-[#06B6D4] rounded-full transition-[width] duration-700 ease-out"
-            style={{ width: `${pctA}%` }}
-          />
-        </div>
-      </div>
-
-      {/* Option B row */}
-      <div className="flex flex-col gap-1.5">
-        <div className="flex items-baseline justify-between text-sm">
-          <span className="text-white/90 font-medium">
-            {labelB}
-            {userVote === "B" && (
-              <span className="ml-2 text-[#A78BFA] text-xs font-semibold">
-                {youLabel}
-              </span>
-            )}
-          </span>
-          <span className="text-white/70 tabular-nums">
-            {votesB} <span className="text-white/40">({pctB}%)</span>
-          </span>
-        </div>
-        <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
-          <div
-            className="h-full bg-[#A78BFA] rounded-full transition-[width] duration-700 ease-out"
-            style={{ width: `${pctB}%` }}
-          />
-        </div>
-      </div>
-
-      {/* Meta */}
-      <p className="text-center text-xs text-white/40 pt-1">
-        {totalLabel.replace("{n}", String(total))}
-      </p>
-    </div>
-  );
-}
-
-// ============================================================
-// Main screen
-// ============================================================
 export function VoteScreen() {
-  const { currentQuestion, tally, userVote, isLoadingQuestion, handleVote, loadNextQuestion } =
-    useApp();
+  const {
+    currentQuestion,
+    currentTally,
+    userVote,
+    isLoadingSession,
+    isSubmitting,
+    sessionIndex,
+    sessionQuestions,
+    handleVote,
+    advanceToNext,
+  } = useApp();
   const { locale, t } = useI18n();
   const [error, setError] = useState<string | null>(null);
 
+  // R4 C-R4-1 defensive guard: error path で setUserVote(null) 巻き戻し後に
+  //   submittingRef が false になり、ユーザーが即別 option を連打すると二重
+  //   POST の恐れを Round 4 Evaluator が指摘。実際には closure ガード + disabled
+  //   属性 + submittingRef で三重防御されているが、iOS Safari scheduler で
+  //   closure 再評価タイミングが不定のリスクを許容できないため、error 直後
+  //   500ms は onVote 呼び出し自体を早期 return で抑止する cooldown を追加。
+  const errorCooldownRef = useRef(0);
   const onVote = useCallback(
     async (choice: VoteChoice) => {
+      if (Date.now() < errorCooldownRef.current) return;
       setError(null);
       try {
         await handleVote(choice);
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
         setError(msg.slice(0, 140));
+        errorCooldownRef.current = Date.now() + 500;
       }
     },
     [handleVote]
   );
 
-  if (isLoadingQuestion || !currentQuestion) {
+  if (isLoadingSession || !currentQuestion) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 gap-3 text-white/60">
-        <Loader2 className="h-6 w-6 animate-spin" />
-        <span className="text-sm">{t("vote.loading")}</span>
+      <div className="flex flex-col items-center justify-center flex-1 gap-3">
+        <Loader2 className="h-5 w-5 animate-spin" style={{ color: "var(--terminal-prompt)" }} />
+        <span
+          className="font-mono-feature text-xs"
+          style={{ color: "var(--terminal-dim)" }}
+        >
+          {t("vote.loading")}
+        </span>
       </div>
     );
   }
 
   const q = locale === "ja" ? currentQuestion.ja : currentQuestion.en;
-  const labelA = q.option_a;
-  const labelB = q.option_b;
+  const aPct = ratioA(currentTally);
+  const bPct = 100 - aPct;
+  const totalQuestions = Math.max(sessionQuestions.length, SESSION_SIZE);
+  const questionNum = sessionIndex + 1;
 
-  const stateA: "default" | "chosen" | "other" = userVote === null ? "default" : userVote === "A" ? "chosen" : "other";
-  const stateB: "default" | "chosen" | "other" = userVote === null ? "default" : userVote === "B" ? "chosen" : "other";
+  // Verdict: did the user side with the majority?
+  const userOnMajoritySide = userVote
+    ? (userVote === "A" ? aPct >= 50 : bPct >= 50)
+    : null;
+  const verdictKey = userOnMajoritySide === null
+    ? null
+    : userOnMajoritySide
+      ? "vote.verdictMajority"
+      : "vote.verdictMinority";
 
   return (
-    <section className="flex-1 flex flex-col justify-center px-5 gap-6 pb-8">
-      <QuestionCard promptJa={currentQuestion.ja.prompt} promptEn={currentQuestion.en.prompt} />
+    <div className="flex-1 flex flex-col px-4 pt-16 pb-6 overflow-y-auto">
+      {/* ─── Terminal header ────────────────────────────────────── */}
+      <div
+        className="font-mono-feature text-[11px] tracking-tight mb-3 flex items-center gap-2"
+        style={{ color: "var(--terminal-dim)" }}
+      >
+        <span style={{ color: "var(--terminal-prompt)" }}>{">"}</span>
+        <span style={{ color: "var(--foreground)", opacity: 0.85 }}>turingvote:</span>
+        <span>ask</span>
+        <span
+          className="font-bold tabular-nums"
+          style={{ color: "var(--foreground)" }}
+        >
+          {String(questionNum).padStart(2, "0")}/{String(totalQuestions).padStart(2, "0")}
+        </span>
+        <span className="opacity-60">·</span>
+        <span className="uppercase tracking-widest text-[10px] opacity-80">
+          {currentQuestion.category}
+        </span>
+        {userVote && (
+          <span
+            className="ml-auto inline-flex items-center gap-1 text-[10px] tracking-widest uppercase"
+            style={{ color: "var(--terminal-prompt)" }}
+          >
+            <Check className="h-3 w-3" />
+            voted
+          </span>
+        )}
+      </div>
 
-      <div className="flex flex-col gap-3">
-        <VoteButton
-          label={labelA}
-          accentHex="#06B6D4"
-          glowStyle="0 0 24px rgba(6,182,212,0.35)"
-          state={stateA}
-          onClick={() => onVote("A")}
+      {/* dim hairline */}
+      <div
+        className="h-px w-full mb-6"
+        style={{ background: "var(--border)" }}
+      />
+
+      {/* ─── Question card ──────────────────────────────────────── */}
+      <motion.div
+        key={currentQuestion.id}
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35 }}
+        className="mb-8"
+      >
+        <h1
+          className="text-[26px] sm:text-[30px] font-bold leading-[1.15] tracking-tight"
+          style={{ color: "var(--foreground)" }}
+        >
+          {q.prompt}
+        </h1>
+      </motion.div>
+
+      {/* ─── Two options ────────────────────────────────────────── */}
+      {/* I5: radiogroup + aria-labelledby で「2つのボタンから1つを選ぶ」意図を
+          支援技術に明示。aria-live は投票後の結果露出(%とverdict)を読み上げる */}
+      <div
+        role="radiogroup"
+        aria-label={q.prompt}
+        className="flex flex-col gap-3 mb-6"
+      >
+        <OptionRow
+          letter="A"
+          label={q.option_a}
+          picked={userVote === "A"}
+          voted={!!userVote}
+          tallyReady={!!currentTally}
+          pct={aPct}
+          isUserChoice={userVote === "A"}
+          ariaRecordingLabel={t("vote.recording")}
+          onClick={() => !userVote && onVote("A")}
         />
-        <VoteButton
-          label={labelB}
-          accentHex="#A78BFA"
-          glowStyle="0 0 24px rgba(167,139,250,0.35)"
-          state={stateB}
-          onClick={() => onVote("B")}
+        <OptionRow
+          letter="B"
+          label={q.option_b}
+          picked={userVote === "B"}
+          voted={!!userVote}
+          tallyReady={!!currentTally}
+          pct={bPct}
+          isUserChoice={userVote === "B"}
+          ariaRecordingLabel={t("vote.recording")}
+          onClick={() => !userVote && onVote("B")}
         />
       </div>
 
-      {error && (
-        <p className="text-red-400 text-xs text-center -mt-2">{error}</p>
-      )}
+      {/* ─── Footer / verdict ───────────────────────────────────── */}
+      <div className="mt-auto">
+        <div
+          className="h-px w-full mb-3"
+          style={{ background: "var(--border)" }}
+        />
 
-      {userVote && tally && (
-        <>
-          <RevealPanel
-            votesA={tally.votes_a}
-            votesB={tally.votes_b}
-            total={tally.total_votes}
-            userVote={userVote}
-            labelA={labelA}
-            labelB={labelB}
-            youLabel={t("vote.you")}
-            totalLabel={t("vote.totalVoters")}
-          />
-          <button
-            type="button"
-            onClick={() => {
-              setError(null);
-              loadNextQuestion();
-            }}
-            className="mx-auto text-sm text-[#06B6D4] hover:text-[#22D3EE] font-semibold"
+        {/* R3 fix: AnimatePresence mode="wait" + React 19 + framer-motion v12 で、
+            hint → reveal の key 切替時に exit 完了後に reveal が mount されない
+            不具合を Vercel 本番で観測(ユーザー操作不能になる)。mode="wait" を
+            外すと両方が短時間 coexist するが、reveal の enter は確実に走る。
+            hint の exit はフェードだけなのでクロスフェードでも違和感ない。*/}
+        <AnimatePresence>
+          {!userVote ? (
+            <motion.div
+              key="hint"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="flex items-center justify-between"
+            >
+              <span
+                className="font-mono-feature text-[11px]"
+                style={{ color: "var(--terminal-dim)" }}
+              >
+                <span style={{ color: "var(--terminal-prompt)" }}>{">"}</span>{" "}
+                {t("vote.tapHint")}
+                <span className="terminal-caret" />
+              </span>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="reveal"
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ delay: 0.05, duration: 0.25 }}
+              role="status"
+              aria-live="polite"
+              className="flex items-center justify-between gap-3"
+            >
+              <div
+                className="font-mono-feature text-[11px] flex-1 leading-snug"
+                style={{ color: "var(--terminal-dim)" }}
+              >
+                {currentTally && verdictKey && (
+                  <div
+                    className="font-semibold mb-0.5"
+                    style={{ color: "var(--foreground)" }}
+                  >
+                    {t(verdictKey)}
+                  </div>
+                )}
+                {currentTally
+                  ? t("vote.totalVoters").replace(
+                      "{n}",
+                      currentTally.total_votes.toLocaleString()
+                    )
+                  : t("vote.recording")}
+              </div>
+              <button
+                type="button"
+                onClick={advanceToNext}
+                disabled={isSubmitting}
+                className="font-mono-feature inline-flex items-center gap-1.5 px-4 py-2.5 rounded-md text-[13px] font-bold tracking-wide hover:opacity-90 active:scale-95 transition-all shrink-0 disabled:opacity-40 disabled:cursor-not-allowed"
+                style={{
+                  backgroundColor: "var(--primary)",
+                  color: "var(--primary-foreground)",
+                }}
+              >
+                {questionNum >= totalQuestions ? t("vote.finish") : t("vote.next")}
+                <ArrowRight className="h-3.5 w-3.5" />
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {error && (
+          <p
+            className="text-xs mt-3 font-mono-feature"
+            style={{ color: "var(--destructive)" }}
           >
-            {t("vote.next")} →
-          </button>
-        </>
-      )}
-    </section>
+            {"> error: "}
+            {error}
+          </p>
+        )}
+      </div>
+    </div>
   );
 }

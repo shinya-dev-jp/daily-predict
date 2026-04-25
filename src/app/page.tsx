@@ -1,51 +1,116 @@
 "use client";
 
-import { Suspense, useState, useCallback, useEffect } from "react";
-import Image from "next/image";
-import { Globe, Loader2, Wallet, CheckCircle } from "lucide-react";
+import { Suspense, useState, useCallback, useEffect, useRef } from "react";
+import { useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { Globe, Loader2, ChevronRight } from "lucide-react";
 import { VoteScreen } from "@/components/screens/VoteScreen";
+import { SummaryDialog } from "@/components/screens/SummaryDialog";
+import { AllCompletedScreen } from "@/components/screens/AllCompletedScreen";
 import { AppProvider, useApp } from "@/components/providers/AppProvider";
 import { I18nProvider, useI18n, type Locale } from "@/i18n";
 import { MiniKit } from "@worldcoin/minikit-js";
+import type { UserProfile } from "@/lib/types";
 
-// ---------------------------------------------------------------------------
-// Language toggle — MVP: EN + JA only
-// ---------------------------------------------------------------------------
 const LANGUAGES: { code: Locale; label: string; shortLabel: string }[] = [
   { code: "en", label: "English", shortLabel: "EN" },
   { code: "ja", label: "日本語", shortLabel: "JA" },
 ];
 
+// ============================================================
+// Floating language toggle (top-right)
+// ----------------------------------------------------------------
+// C6: 以前は button に type 指定が無く、フォーム内ネスト時に submit になる
+// 副作用があった。また メニューを開いた後にキーボード操作(Esc / 矢印 / Enter)
+// で閉じる経路がなく、フォーカストラップに嵌まるとスクリーンリーダー利用者が
+// 脱出不能になった。以下で対処:
+//   - すべての button に type="button"
+//   - メニュー open 中は document-level で Esc をフック
+//   - メニュー閉じた直後にトリガー button へ focus を戻す
+//   - role="menu" / role="menuitem" / aria-expanded / aria-haspopup を付与
+// ============================================================
 function LanguageToggle() {
   const { locale, setLocale } = useI18n();
   const [open, setOpen] = useState(false);
   const current = LANGUAGES.find((l) => l.code === locale) ?? LANGUAGES[0];
+  const triggerRef = useRef<HTMLButtonElement>(null);
+
+  // Esc でメニューを閉じ、トリガーに focus を戻す。overlay click でも閉じるが、
+  // キーボード利用者にはそれが届かないため Esc を最優先経路にする。
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setOpen(false);
+        // React の state 更新より後に focus 戻しが走るよう microtask で遅延。
+        queueMicrotask(() => triggerRef.current?.focus());
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open]);
+
+  const handleSelect = useCallback(
+    (code: Locale) => {
+      setLocale(code);
+      setOpen(false);
+      queueMicrotask(() => triggerRef.current?.focus());
+    },
+    [setLocale]
+  );
 
   return (
     <div className="relative">
       <button
+        ref={triggerRef}
+        type="button"
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium text-white/60 hover:bg-white/10 transition-colors"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-label={`Language: ${current.label}`}
+        className="font-mono-feature flex items-center gap-1.5 px-2.5 py-1 rounded text-[10px] font-bold tracking-widest uppercase border transition"
+        style={{
+          backgroundColor: "color-mix(in oklch, var(--background) 70%, transparent)",
+          borderColor: "var(--border)",
+          color: "var(--foreground)",
+          backdropFilter: "blur(8px)",
+        }}
       >
-        <Globe className="h-3.5 w-3.5" />
+        <Globe className="h-3 w-3" aria-hidden />
         <span>{current.shortLabel}</span>
       </button>
       {open && (
         <>
-          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-full mt-1 bg-[#252152] rounded-xl shadow-lg border border-white/10 py-1 z-50 min-w-[120px]">
+          <div
+            aria-hidden
+            className="fixed inset-0 z-40"
+            onClick={() => setOpen(false)}
+          />
+          <div
+            role="menu"
+            aria-label="Select language"
+            className="absolute right-0 top-full mt-2 rounded-md border py-1 z-50 min-w-[120px]"
+            style={{
+              backgroundColor: "var(--card)",
+              borderColor: "var(--border)",
+              boxShadow: "0 12px 32px -8px rgba(0,0,0,0.5)",
+            }}
+          >
             {LANGUAGES.map((lang) => (
               <button
                 key={lang.code}
-                onClick={() => {
-                  setLocale(lang.code);
-                  setOpen(false);
-                }}
-                className={`w-full text-left px-3 py-2 text-sm transition-colors ${
-                  lang.code === locale
-                    ? "text-[#06B6D4] font-semibold bg-[#06B6D4]/10"
-                    : "text-white/70 hover:bg-white/5"
+                type="button"
+                role="menuitemradio"
+                aria-checked={lang.code === locale}
+                onClick={() => handleSelect(lang.code)}
+                className={`w-full text-left px-3 py-2 text-sm transition ${
+                  lang.code === locale ? "font-bold" : ""
                 }`}
+                style={{
+                  color: lang.code === locale ? "var(--terminal-prompt)" : "var(--muted-foreground)",
+                  backgroundColor: lang.code === locale ? "var(--secondary)" : "transparent",
+                }}
               >
                 {lang.label}
               </button>
@@ -57,26 +122,24 @@ function LanguageToggle() {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Loading skeleton shown while the app boots inside World App
-// ---------------------------------------------------------------------------
+// ============================================================
+// Loading skeleton
+// ============================================================
 function AppSkeleton() {
   return (
-    <div className="mx-auto max-w-md min-h-dvh flex flex-col items-center justify-center bg-[#1E1B4B] gap-4 p-8">
-      <div className="w-16 h-16 rounded-2xl bg-[#252152] animate-pulse" />
-      <div className="w-48 h-4 rounded bg-[#252152] animate-pulse" />
-      <div className="w-32 h-3 rounded bg-[#252152] animate-pulse mt-2" />
+    <div className="mx-auto max-w-md min-h-dvh flex items-center justify-center" style={{ background: "var(--background)" }}>
+      <Loader2 className="h-5 w-5 animate-spin" style={{ color: "var(--terminal-prompt)" }} />
     </div>
   );
 }
 
-// ---------------------------------------------------------------------------
-// Wallet Auth Screen — SIWE handshake
-// ---------------------------------------------------------------------------
+// ============================================================
+// Wallet Auth Screen — terminal boot sequence
+// ============================================================
 function WalletAuthScreen({
   onAuthSuccess,
 }: {
-  onAuthSuccess: (address: string, user: unknown, authToken: string) => void;
+  onAuthSuccess: (address: string, user: UserProfile) => void;
 }) {
   const { t } = useI18n();
   const [isAuthenticating, setIsAuthenticating] = useState(false);
@@ -95,14 +158,16 @@ function WalletAuthScreen({
         return;
       }
       const { nonce } = await nonceRes.json();
-      if (!nonce) {
-        setError("Authentication setup failed");
-        setIsAuthenticating(false);
-        return;
-      }
 
       if (!MiniKit.isInstalled()) {
-        setError(t("verify.notInWorldApp"));
+        // I4: World App 外から来たユーザーに「インストールする」導線と「preview=1
+        // で中身を見る」導線の両方を示す。以前は notInWorldApp 文言だけ出して
+        // ユーザーを迷子にしていた。
+        setError(
+          `${t("verify.notInWorldApp")} ` +
+            `Install: https://world.org/download · ` +
+            `Or try preview mode: ${typeof window !== "undefined" ? window.location.origin : ""}?preview=1`,
+        );
         setIsAuthenticating(false);
         return;
       }
@@ -116,13 +181,14 @@ function WalletAuthScreen({
       if (!finalPayload || finalPayload.status !== "success") {
         const reason =
           finalPayload && "error_code" in finalPayload ? finalPayload.error_code : "cancelled";
-        setError(`Sign-in cancelled or failed (${reason})`);
+        setError(`Sign-in cancelled (${reason})`);
         setIsAuthenticating(false);
         return;
       }
 
       const completeRes = await fetch("/api/auth/wallet", {
         method: "POST",
+        credentials: "include", // サーバーが Set-Cookie で tv_auth を発行
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ payload: finalPayload, nonce }),
       });
@@ -134,7 +200,7 @@ function WalletAuthScreen({
         return;
       }
 
-      onAuthSuccess(json.user.address, json.user, json.auth_token);
+      onAuthSuccess(json.user.address, json.user as UserProfile);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       setError(`Error: ${msg.slice(0, 120)}`);
@@ -143,91 +209,166 @@ function WalletAuthScreen({
     }
   }, [isAuthenticating, onAuthSuccess, t]);
 
+  const features = [
+    t("verify.feature1"),
+    t("verify.feature2"),
+    t("verify.feature3"),
+  ];
+
   return (
-    <div className="mx-auto max-w-md min-h-dvh flex flex-col bg-[#1E1B4B] relative overflow-hidden">
-      {/* Background glow */}
-      <div className="absolute top-[-20%] left-[-30%] w-[500px] h-[500px] bg-[#06B6D4]/8 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-20%] w-[400px] h-[400px] bg-[#A78BFA]/10 rounded-full blur-[100px] pointer-events-none" />
+    <div
+      className="mx-auto max-w-md min-h-dvh flex flex-col relative"
+      style={{ background: "var(--background)" }}
+    >
+      {/* faint terminal grid background */}
+      <div
+        aria-hidden
+        className="absolute inset-0 terminal-grid opacity-40 pointer-events-none"
+      />
 
-      <div className="flex-1 flex flex-col items-center justify-center px-8 gap-6 relative z-10">
-        <div className="relative">
-          <div className="absolute inset-0 bg-[#06B6D4]/20 rounded-3xl blur-xl scale-110" />
-          <Image
-            src="/app-icon-small.png"
-            alt="TuringVote"
-            width={88}
-            height={88}
-            className="rounded-2xl relative shadow-2xl shadow-[#4338CA]/30"
-          />
-        </div>
+      {/* Top wordmark */}
+      <div className="absolute top-4 left-4 z-30 font-mono-feature text-[11px]"
+        style={{ color: "var(--terminal-dim)" }}
+      >
+        <span style={{ color: "var(--terminal-prompt)" }}>{">"}</span>{" "}
+        <span style={{ color: "var(--foreground)", opacity: 0.85 }}>turingvote:</span>{" "}
+        boot
+        <span className="terminal-caret" />
+      </div>
+      <div className="absolute top-4 right-4 z-30">
+        <LanguageToggle />
+      </div>
 
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-white mb-2 tracking-tight">TuringVote</h1>
-          <p className="text-[#94A3B8] text-sm leading-relaxed max-w-[280px]">
+      <div className="flex-1 flex flex-col items-stretch justify-center px-6 gap-7 relative z-10">
+        {/* Wordmark + tagline */}
+        <div>
+          <div
+            className="font-mono-feature text-[10px] uppercase tracking-[0.3em] mb-2"
+            style={{ color: "var(--terminal-prompt)" }}
+          >
+            // verified humans only
+          </div>
+          <h1
+            className="text-[40px] font-bold tracking-tight leading-none"
+            style={{ color: "var(--foreground)" }}
+          >
+            TuringVote
+          </h1>
+          <p
+            className="text-[14px] mt-3 leading-relaxed"
+            style={{
+              color: "var(--muted-foreground)",
+              textWrap: "balance",
+              wordBreak: "keep-all",
+              overflowWrap: "break-word",
+            }}
+          >
             {t("verify.subtitle")}
           </p>
         </div>
 
-        <div className="w-full space-y-2.5">
-          {[{ text: t("verify.feature1") }, { text: t("verify.feature2") }, { text: t("verify.feature3") }].map(
-            (f, i) => (
-              <div
-                key={i}
-                className="flex items-center gap-3 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl px-4 py-3.5"
-              >
-                <div className="h-7 w-7 rounded-lg bg-[#06B6D4]/15 flex items-center justify-center shrink-0">
-                  <CheckCircle className="h-3.5 w-3.5 text-[#06B6D4]" />
-                </div>
-                <span className="text-white/80 text-[13px] font-medium">{f.text}</span>
-              </div>
-            )
-          )}
-        </div>
-
-        <div className="w-full relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-[#06B6D4] to-[#A78BFA] rounded-2xl blur-lg opacity-30" />
-          <button
-            onClick={handleSignIn}
-            disabled={isAuthenticating}
-            className="relative w-full py-4 rounded-2xl bg-gradient-to-r from-[#06B6D4] to-[#A78BFA] text-white font-bold text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-transform disabled:opacity-50 shadow-lg"
+        {/* Features as terminal log */}
+        <div
+          className="rounded-md border p-4"
+          style={{
+            background: "color-mix(in oklch, var(--card) 90%, transparent)",
+            borderColor: "var(--border)",
+          }}
+        >
+          <div
+            className="font-mono-feature text-[10px] uppercase tracking-widest mb-2.5"
+            style={{ color: "var(--terminal-dim)" }}
           >
-            {isAuthenticating ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Wallet className="h-4 w-4" />
-            )}
-            {isAuthenticating ? t("verify.verifying") : t("verify.button")}
-          </button>
+            spec
+          </div>
+          <ul className="flex flex-col gap-2">
+            {features.map((f, i) => (
+              <li
+                key={i}
+                className="font-mono-feature text-[12.5px] flex items-start gap-2 leading-snug"
+                style={{ color: "var(--foreground)", opacity: 0.92 }}
+              >
+                <span
+                  className="shrink-0 mt-[3px]"
+                  style={{ color: "var(--terminal-prompt)" }}
+                >
+                  ▸
+                </span>
+                <span>{f}</span>
+              </li>
+            ))}
+          </ul>
         </div>
 
-        {error && <p className="text-red-400 text-xs text-center">{error}</p>}
+        {/* CTA */}
+        <button
+          onClick={handleSignIn}
+          disabled={isAuthenticating}
+          className="font-mono-feature group w-full h-12 rounded-md font-bold text-[14px] tracking-wide flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-60"
+          style={{
+            backgroundColor: "var(--primary)",
+            color: "var(--primary-foreground)",
+          }}
+        >
+          {isAuthenticating ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <span style={{ color: "var(--primary-foreground)" }}>{">"}</span>
+          )}
+          <span>{isAuthenticating ? t("verify.verifying") : t("verify.button")}</span>
+          {!isAuthenticating && (
+            <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+          )}
+        </button>
 
-        <p className="text-white/25 text-[11px] text-center">{t("verify.footer")}</p>
+        {error && (
+          <p
+            className="font-mono-feature text-xs"
+            style={{ color: "var(--destructive)" }}
+          >
+            {"> error: "}
+            {error}
+          </p>
+        )}
+
+        <p
+          className="font-mono-feature text-[10px] text-center uppercase tracking-widest"
+          style={{ color: "var(--terminal-dim)" }}
+        >
+          {t("verify.footer")}
+        </p>
+
+        {/* About-page link — small, centred, mono. Gives reviewers (and any
+            curious user) a one-tap route to the utility/privacy explainer
+            without taking away from the sign-in CTA above. */}
+        <p className="text-center">
+          <Link
+            href="/about"
+            className="font-mono-feature text-[10px] uppercase tracking-widest underline underline-offset-2"
+            style={{ color: "var(--terminal-prompt)" }}
+          >
+            {t("app.aboutLink")}
+          </Link>
+        </p>
       </div>
     </div>
   );
 }
 
-// ---------------------------------------------------------------------------
-// TuringVote main shell
-// ---------------------------------------------------------------------------
+// ============================================================
+// Main app shell — terminal-themed header
+// ============================================================
 function TuringVoteApp() {
-  const { walletAddress, onAuthenticated } = useApp();
-  const { t } = useI18n();
-
-  const isPreview =
-    typeof window !== "undefined" &&
-    new URLSearchParams(window.location.search).get("preview") === "1";
+  const { walletAddress, onAuthenticated, allCompleted } = useApp();
+  const searchParams = useSearchParams();
+  const isPreview = searchParams.get("preview") === "1";
+  // Showcase capture mode: hide the SAMPLE DATA banner for clean store screenshots
+  // (preview demo data still active, but no overlay). Used by Playwright capture.
+  const isShowcase = searchParams.get("showcase") === "1";
 
   const handleAuthSuccess = useCallback(
-    (address: string, userProfile: unknown, authToken: string) => {
-      if (userProfile) {
-        onAuthenticated(
-          address,
-          userProfile as import("@/lib/types").UserProfile,
-          authToken
-        );
-      }
+    (address: string, userProfile: UserProfile) => {
+      onAuthenticated(address, userProfile);
     },
     [onAuthenticated]
   );
@@ -237,33 +378,71 @@ function TuringVoteApp() {
   }
 
   return (
-    <main className="mx-auto max-w-md min-h-dvh flex flex-col bg-[#1E1B4B]">
-      <header className="flex justify-between items-center px-5 py-4">
-        <div className="flex items-center gap-2">
-          <Image
-            src="/app-icon-small.png"
-            alt="TuringVote"
-            width={28}
-            height={28}
-            className="rounded-lg"
-          />
-          <span className="font-bold text-white text-sm tracking-tight">TuringVote</span>
-        </div>
+    <main
+      className="mx-auto max-w-md min-h-dvh flex flex-col relative"
+      style={{ background: "var(--background)" }}
+    >
+      {/* Faint grid backdrop */}
+      <div
+        aria-hidden
+        className="absolute inset-0 terminal-grid opacity-30 pointer-events-none"
+      />
+
+      {/* Top wordmark — always-on terminal prompt. The wordmark itself is a
+          Link to /about so reviewers can reach the utility explainer with a
+          single tap from anywhere in the app shell. Mobile-first: the entire
+          word is the tap target (~64px wide), no separate button needed. */}
+      <Link
+        href="/about"
+        aria-label="About TuringVote"
+        className="absolute top-3 left-4 z-30 font-mono-feature text-[11px] flex items-center gap-1.5"
+        style={{ color: "var(--terminal-dim)" }}
+      >
+        <span style={{ color: "var(--terminal-prompt)" }}>{">"}</span>
+        <span style={{ color: "var(--foreground)", opacity: 0.9 }}>turingvote</span>
+      </Link>
+      <div className="absolute top-3 right-4 z-30">
         <LanguageToggle />
-      </header>
+      </div>
 
-      <VoteScreen />
+      {/* DEMO MODE banner — preview=1 only(showcase=1 で非表示・store screenshot 用) */}
+      {isPreview && !isShowcase && (
+        <div
+          role="status"
+          aria-label="Demo mode notice"
+          className="fixed bottom-2 left-1/2 -translate-x-1/2 z-40 font-mono-feature text-[10px] tracking-widest uppercase text-center py-1.5 px-3 rounded-full border max-w-[90vw] whitespace-nowrap overflow-hidden text-ellipsis"
+          style={{
+            background: "color-mix(in oklch, var(--destructive) 22%, var(--background))",
+            borderColor: "color-mix(in oklch, var(--destructive) 70%, transparent)",
+            color: "var(--destructive)",
+            backdropFilter: "blur(6px)",
+          }}
+        >
+          {/* M2: "⚠ DEMO" の曖昧な警告ではなく、審査官が一目で「偽の初期データ」と
+              判別できる "SAMPLE DATA (preview)" 表記に。Worldcoin 審査での fake
+              engagement 誤認を防ぐ。locale 非依存のリテラルにして JA/EN 両方で
+              同じメッセージを見せる。 */}
+          SAMPLE DATA · preview mode
+        </div>
+      )}
 
-      <footer className="px-5 py-4 text-center text-[11px] text-white/25">
-        {t("app.footer")}
-      </footer>
+      <div className="relative z-10 flex-1 flex flex-col">
+        {allCompleted ? <AllCompletedScreen /> : <VoteScreen />}
+      </div>
+      {/* R5 C-R5-1 fix: allCompleted 排他ガードを外す。Dialog の open 条件は
+          `sessionDone && !dismissing` で制御されており、startNewSession で
+          sessionAnswers=[] にリセット→sessionDone=false になるので Dialog は
+          自然に閉じる。排他ガードだと Dialog 内 startNewSession が自身を
+          unmount する race になり「もう5問」→AllCompletedScreen ワープの
+          画面破綻を生む。 */}
+      <SummaryDialog />
     </main>
   );
 }
 
-// ---------------------------------------------------------------------------
+// ============================================================
 // Root
-// ---------------------------------------------------------------------------
+// ============================================================
 export default function Home() {
   return (
     <I18nProvider>

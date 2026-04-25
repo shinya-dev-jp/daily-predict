@@ -4,9 +4,15 @@ import { track } from "./track";
 /**
  * World App deep link for TuringVote.
  * Opens directly in World App; falls back to download page.
+ * NOTE: app_id is read from NEXT_PUBLIC_WLD_APP_ID at build time so we don't
+ * accidentally ship the wrong app's id (Daily Predict residual hardcode bug
+ * 2026-04-19 — share link previously pointed to Daily Predict's app_id, which
+ * caused JP region block on the share landing page).
  */
-export const APP_DEEP_LINK =
-  "https://worldcoin.org/mini-app?app_id=app_9ea9956fcd3bcb53a6accf1e93383e22";
+const TV_APP_ID =
+  process.env.NEXT_PUBLIC_WLD_APP_ID ??
+  "app_30c7b1a4127cca75b14c1abb6a024d46";
+export const APP_DEEP_LINK = `https://worldcoin.org/mini-app?app_id=${TV_APP_ID}`;
 
 /**
  * Share text via MiniKit (in World App) → Web Share API → clipboard.
