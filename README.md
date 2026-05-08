@@ -1,6 +1,6 @@
 # TuringVote
 
-**ARCHIVED 2026-05-03** — TuringVote was retired after 3 Worldcoin reviewer rejects (Reject 1 and 3 both for "utility unclear"). Repository preserved as learning asset.
+**RESOLVE IN PROGRESS 2026-05-08** — TuringVote is being updated for a World App reviewer concern that the app utility was unclear. The current resolve pack focuses on making the user benefit explicit: a 90-second bot-resistant preference check for Verified Humans, ending with a majority/minority self-profile.
 
 Two choices. Real humans. No leaderboard. A pure two-choice poll app for Verified Humans on World App. Tap A or B on short neutral questions — morning person or night owl, coffee or tea, logic or intuition, stability or challenge, honesty or kindness — and see how other Verified Humans chose. Answer five in a row to get a one-screen summary of whether you lean majority or minority. One nullifier, one vote per question. No points, no streaks, no rewards, no leaderboard.
 

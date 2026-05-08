@@ -31,14 +31,14 @@
     "en": {
       "app_name": "TuringVote",
       "short_name": "TuringVote",
-      "tag_line": "Two choices. Real humans. No ranking.",
-      "description": "TuringVote is a pure two-choice poll app for Verified Humans only. Tap A or B on short neutral questions — morning person or night owl, coffee or tea, logic or intuition, stability or challenge, honesty or kindness — and see how other Verified Humans split. Answer five in a row to get a one-screen summary showing whether you lean majority or minority. No points, no streaks, no rewards, no leaderboard. Just how Verified Humans of World App actually split on each question."
+      "tag_line": "90-sec human preference check.",
+      "description": "TuringVote is a 90-second preference check for World App users who want to compare their own answers with verified-human results. Answer 5 neutral A/B prompts, instantly see how Verified Humans split, and get a majority/minority self-profile at the end. The utility is not rewards or ranking: each vote comes from one verified human, with no points, no streaks, no tokens, and no leaderboard."
     },
     "ja": {
       "app_name": "TuringVote",
       "short_name": "TuringVote",
-      "tag_line": "認証人間の2択。ランキングなし。",
-      "description": "TuringVoteは認証済み人間だけが参加できる純粋な2択投票アプリです。朝型/夜型、コーヒー/お茶、論理/直感、安定/挑戦、正直/優しさなどの中立的な2択にAかBをタップすると、他の認証済み人間がどちらに分かれたかが即座にわかります。5問連続で回答するとあなたが多数派寄りか少数派寄りかのサマリーが出ます。ポイント・ストリーク・報酬・ランキングは一切なし。World App の認証済み人間が各設問にどう分かれたかだけに特化しました。"
+      "tag_line": "90秒の人間2択チェック。",
+      "description": "TuringVoteは、World App ユーザーが自分の答えを認証済み人間の結果と比較できる90秒の選好チェックです。5つの中立的なA/B質問に答えると、認証済み人間がどう分かれたかをすぐ確認でき、最後に自分が多数派寄りか少数派寄りかのプロフィールが出ます。Utilityは報酬やランキングではなく、1人の認証済み人間につき1票の比較体験です。ポイント・ストリーク・トークン・ランキングはありません。"
     }
   },
 
@@ -49,10 +49,10 @@
   },
 
   "_notes": {
-    "status": "Ready for first submission.",
+    "status": "Resolve in progress for utility-unclear review feedback.",
     "tag_line_char_count": {
-      "en": 37,
-      "ja": 15
+      "en": 30,
+      "ja": 13
     },
     "description_example_categories": "preference(morning/coffee) + style(logic) + values(stability/honesty) を明示して tc_questions.json の 30問分布(values 43%/preference 23%/style 17%/lifestyle 13%/ethics 3%)と整合",
     "languages_rationale": "Round 2 監査で es/ko/pt/th コードを削除済(161行→37行)。portal_config.json も en/ja のみに揃える。",
