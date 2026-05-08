@@ -373,7 +373,11 @@ function TuringVoteApp() {
     [onAuthenticated]
   );
 
-  if (!walletAddress && !isPreview) {
+  // 2026-04-27 reject fix: signOut から walletAddress=null にしたとき、preview
+  // mode でも WalletAuthScreen に戻すことで Exit ボタンが「sign-in screen に戻る」
+  // 統一動作になる。preview の起動時は AppProvider が walletAddress を初期セット
+  // するので、初回起動時に sign-in 画面が出ることはない。
+  if (!walletAddress) {
     return <WalletAuthScreen onAuthSuccess={handleAuthSuccess} />;
   }
 

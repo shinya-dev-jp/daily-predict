@@ -27,6 +27,7 @@
   "summary.minorityCount": "少数派側",
   "summary.playAgain": "もう5問",
   "summary.share": "シェア",
+  "summary.exit": "終了する",
 
   "verify.subtitle": "認証済み人間がどう答えたかが見られる2択アンケート。World ウォレットでサインインして投票(Bot アカウントはフィルタリングされます)。",
   "verify.feature1": "5問のA/B質問に2分以内で回答",
@@ -67,7 +68,7 @@
   "about.eligibility": "World ID 認証済み、または World App ウォレット保有者で 18歳以上。1質問につき1人1票をデータベースレベルで強制。",
   "about.contactHeading": "お問い合わせ",
   "about.contactBody": "バグ報告・機能要望・リサーチ用途のお問い合わせ:",
-  "about.contactEmail": "shinya.yuda.b@gmail.com",
+  "about.contactEmail": "h6yd2wcp4x@gmail.com",
   "about.legalHeading": "規約",
   "about.privacyLink": "プライバシーポリシー",
   "about.termsLink": "利用規約",

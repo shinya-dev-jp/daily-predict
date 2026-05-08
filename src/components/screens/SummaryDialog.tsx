@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef } from "react";
 import { motion } from "framer-motion";
-import { RotateCcw, Share2 } from "lucide-react";
+import { RotateCcw, Share2, LogOut } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -35,7 +35,7 @@ function asciiBar(filled: number, total: number): string {
 }
 
 export function SummaryDialog() {
-  const { sessionDone, sessionAnswers, startNewSession, dismissSummaryToLastQ, dismissing } = useApp();
+  const { sessionDone, sessionAnswers, startNewSession, dismissSummaryToLastQ, dismissing, signOut } = useApp();
   const { t, locale } = useI18n();
 
   const stats = useMemo(() => {
@@ -236,6 +236,21 @@ export function SummaryDialog() {
           >
             <Share2 className="h-3.5 w-3.5 mr-2" />
             {t("summary.share")}
+          </Button>
+          {/*
+            2026-04-27 reject fix:
+            reviewer "can't exit once finishing the 5 q's" → 明示的な Exit ボタンを追加。
+            押下で signOut() → walletAddress=null → WalletAuthScreen に戻る
+            (= Mini App から「離脱した」状態を reviewer に明示)。
+          */}
+          <Button
+            onClick={signOut}
+            variant="outline"
+            className="w-full h-11 text-sm font-medium rounded-md"
+            style={{ borderColor: "var(--border)" }}
+          >
+            <LogOut className="h-3.5 w-3.5 mr-2" />
+            {t("summary.exit")}
           </Button>
         </div>
       </DialogContent>

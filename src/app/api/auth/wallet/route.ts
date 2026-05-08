@@ -209,3 +209,28 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+
+/**
+ * DELETE /api/auth/wallet
+ *
+ * 2026-04-27 reject fix: SummaryDialog の "Exit" ボタンから呼ばれる明示的な
+ * sign-out。HttpOnly cookie tv_auth を maxAge=0 で expire させ、サーバー側の
+ * 認証 trail も完全に切り離す。これにより Exit 後は次の API 呼び出しで
+ * 確実に未認証状態になり、reviewer の「exit したのに状態が残っている」と
+ * いう疑念を排除する。
+ *
+ * client (AppProvider.signOut) は fire-and-forget。失敗しても client state は
+ * 既にリセット済みなので exit UX としては成立する(server fall-back のみ)。
+ */
+export async function DELETE() {
+  logInfo("api/auth/wallet", "sign-out (cookie clear)");
+  const res = NextResponse.json({ success: true });
+  res.cookies.set(AUTH_COOKIE_NAME, "", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "lax",
+    path: "/",
+    maxAge: 0,
+  });
+  return res;
+}

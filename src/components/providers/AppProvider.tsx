@@ -138,6 +138,13 @@ interface AppState {
    * Radix Dialog close animation とユーザー高速連打の競合を防ぐ。
    */
   dismissing: boolean;
+  /**
+   * 2026-04-27 reject fix (reviewer: "can't exit once finishing the 5 q's"):
+   * SummaryDialog 上の「Exit」ボタンから呼ばれる明示的な離脱アクション。
+   * client state を全リセット → walletAddress=null → WalletAuthScreen に戻る。
+   * Cookie の DELETE は best-effort(エンドポイント未実装でも client state は離脱状態に)。
+   */
+  signOut: () => void;
 }
 
 const AppContext = createContext<AppState | null>(null);
@@ -523,6 +530,47 @@ export function AppProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  // ── signOut (2026-04-27 reject fix) ──────────────────────────────────────
+  // reviewer: "can't exit once finishing the 5 q's" → Summary 画面に明示的な
+  // Exit ボタンを追加。押下で client state を全リセット → walletAddress=null
+  // → WalletAuthScreen が再表示される(= Mini App 内で「最初に戻った」状態)。
+  // server cookie の DELETE は best-effort(エンドポイントが未実装でも、
+  // client state を null にすれば WalletAuthScreen で再 walletAuth を要求するので
+  // exit 体験としては成立する)。
+  const signOut = useCallback(() => {
+    // Best-effort cookie clear (fire-and-forget・log only on failure)
+    // R1 I4 fix: silent catch を console.warn に変更し、debug trail を残す。
+    fetch("/api/auth/wallet", {
+      method: "DELETE",
+      credentials: "include",
+    }).catch((err) => {
+      console.warn("[signOut] cookie clear failed (non-fatal):", err);
+    });
+
+    // Stop any pending dismiss timer to avoid late re-open of dialog
+    if (dismissingTimerRef.current) {
+      clearTimeout(dismissingTimerRef.current);
+      dismissingTimerRef.current = null;
+    }
+
+    // Reset all client state (defense in depth: include in-flight flags too)
+    // R1 I1 fix: isSubmitting / submittingRef も reset(将来の race を予防)。
+    setWalletAddress(null);
+    setUserProfile(null);
+    setSessionQuestions([]);
+    setSessionIndex(0);
+    setSessionAnswers([]);
+    setUserVote(null);
+    setCurrentTally(null);
+    setVotedQuestionIds(new Set());
+    setAllCompleted(false);
+    setIsLoadingSession(false);
+    setIsSubmitting(false);
+    submittingRef.current = false;
+    setLoadError(null);
+    setDismissing(false);
+  }, []);
+
   // ── Start a fresh 5-question session ─────────────────────────────────────
   // C3: excludeIds は state リセットの「前」に必ず取得する。
   // Q3 (2026-04-19): exclude list = votedQuestionIds(全セッション横断・
@@ -618,6 +666,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       startNewSession,
       dismissSummaryToLastQ,
       dismissing,
+      signOut,
     }),
     [
       sessionQuestions,
@@ -639,6 +688,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       startNewSession,
       dismissSummaryToLastQ,
       dismissing,
+      signOut,
     ]
   );
 
