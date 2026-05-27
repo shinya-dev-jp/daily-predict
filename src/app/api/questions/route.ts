@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import questions from "@/data/tc_questions.json";
+import { getIsoWeekId, selectWeeklyPackQuestions } from "@/lib/retention";
 
 type Question = {
   id: number;
@@ -21,15 +22,20 @@ const NO_STORE_HEADERS = { "Cache-Control": "no-store" } as const;
  * GET /api/questions?count=<n>       → n random questions (no duplicates)
  * GET /api/questions?count=5&exclude=1,7,12
  *                                    → 5 random questions excluding the given ids
+ * GET /api/questions?count=5&pack=current&exclude=1,7,12
+ *                                    → current weekly pack first, then safe fallback
  *
- * The pool is the immutable 30-question dictionary shipped in
- * src/data/tc_questions.json. No Supabase read path is needed for MVP.
+ * The pool is the immutable question dictionary shipped in
+ * src/data/tc_questions.json. No Supabase read path is needed for MVP, but
+ * new IDs must be upserted to tc_questions before deploy because /api/vote
+ * uses a foreign key on tc_votes.question_id.
  */
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);
   const idParam = url.searchParams.get("id");
   const countParam = url.searchParams.get("count");
   const excludeParam = url.searchParams.get("exclude");
+  const packParam = url.searchParams.get("pack");
 
   if (idParam) {
     const id = Number(idParam);
@@ -49,6 +55,28 @@ export async function GET(req: NextRequest) {
         .map((s) => Number(s.trim()))
         .filter((n) => Number.isFinite(n))
     );
+
+    if (packParam === "current") {
+      const questionPackId = getIsoWeekId();
+      const weeklyPack = selectWeeklyPackQuestions(pool, questionPackId);
+      const weeklyIds = new Set(weeklyPack.map((q) => q.id));
+      const weeklyAvailable = weeklyPack.filter((q) => !excludeIds.has(q.id));
+      const fallback = pool.filter((q) => !excludeIds.has(q.id) && !weeklyIds.has(q.id));
+      const shuffledFallback = [...fallback];
+      for (let i = shuffledFallback.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffledFallback[i], shuffledFallback[j]] = [shuffledFallback[j], shuffledFallback[i]];
+      }
+
+      return NextResponse.json(
+        {
+          questions: [...weeklyAvailable, ...shuffledFallback].slice(0, count),
+          question_pack_id: questionPackId,
+        },
+        { headers: NO_STORE_HEADERS },
+      );
+    }
+
     const available = pool.filter((q) => !excludeIds.has(q.id));
     // Fisher-Yates partial shuffle
     const shuffled = [...available];

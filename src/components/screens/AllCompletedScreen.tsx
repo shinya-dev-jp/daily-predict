@@ -27,7 +27,7 @@ export function AllCompletedScreen() {
       locale === "ja"
         ? `🧠 TuringVoteで全${totalAnswered}問の2択投票に答えました。\n\n認証済み人間だけの投票プラットフォーム。\n\n🎯 試してみる:`
         : `🧠 I've answered all ${totalAnswered} TuringVote polls.\n\nVerified-humans-only 2-choice questions.\n\n🎯 Try it:`;
-    track("share", { metadata: { surface: "all_completed" } });
+    track("share_tap", { metadata: { surface: "all_completed" } });
     await shareText(text);
   };
 

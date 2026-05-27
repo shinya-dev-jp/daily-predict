@@ -23,11 +23,14 @@
   "summary.profileMinorityDesc": "You pick what most people don't. You see the angle others miss.",
   "summary.profileSplit": "Balanced",
   "summary.profileSplitDesc": "No strong lean toward majority or minority — a flat, even perspective.",
+  "summary.returnCue": "A fresh 5-question check opens each week. Come back to see how verified humans split next.",
   "summary.majorityCount": "Majority",
   "summary.minorityCount": "Minority",
   "summary.playAgain": "Play 5 more",
   "summary.share": "Share",
   "summary.exit": "Exit",
+
+  "pack.weekly": "This week",
 
   "verify.subtitle": "A 90-second bot-resistant preference check. Answer 5 simple A/B questions, see how Verified Humans split, then get your majority/minority self-profile.",
   "verify.feature1": "Use it to compare your answers with verified-human results, not anonymous internet polls",

@@ -23,11 +23,14 @@
   "summary.profileMinorityDesc": "人と違う選択を好む傾向。独自の視点の持ち主です。",
   "summary.profileSplit": "バランス型",
   "summary.profileSplitDesc": "多数派にも少数派にも偏らない、フラットな感覚の持ち主。",
+  "summary.returnCue": "毎週、新しい5問で比較できます。次回も verified humans の分かれ方を見に来てください。",
   "summary.majorityCount": "多数派側",
   "summary.minorityCount": "少数派側",
   "summary.playAgain": "もう5問",
   "summary.share": "シェア",
   "summary.exit": "終了する",
+
+  "pack.weekly": "今週の5問",
 
   "verify.subtitle": "90秒でできる、Botに汚染されない人間の選好チェック。5つのA/B質問に答え、認証済み人間の分かれ方を見て、最後に自分の多数派/少数派プロフィールを確認できます。",
   "verify.feature1": "匿名ネット投票ではなく、自分の答えを認証済み人間の結果と比較できます",

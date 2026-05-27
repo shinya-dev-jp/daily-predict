@@ -15,17 +15,22 @@ const STORAGE_KEY = "dp_session_id";
 
 export type EventName =
   | "app_open"
-  | "screen_view"
+  | "auth_success"
+  | "session_start"
+  | "question_pack_view"
+  | "first_vote"
+  | "fifth_vote"
+  | "summary_view"
+  | "share_tap"
+  | "share_success"
+  | "return_visit"
   | "verify_started"
   | "verify_completed"
   | "verify_failed"
   | "vote"
-  | "share"
-  | "reward_earned"
   | "error";
 
 interface TrackOptions {
-  user_address?: string | null;
   metadata?: Record<string, unknown>;
 }
 
@@ -51,7 +56,6 @@ export function track(event: EventName, options: TrackOptions = {}): void {
 
   const payload = JSON.stringify({
     event_name: event,
-    user_address: options.user_address ?? null,
     metadata: options.metadata ?? null,
     session_id: getSessionId(),
     locale: getLocale(),

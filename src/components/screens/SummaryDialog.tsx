@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { useApp } from "@/components/providers/AppProvider";
 import { useI18n } from "@/i18n";
 import { shareText } from "@/lib/share";
+import { track } from "@/lib/track";
 import { SUMMARY_BAR_WIDTH } from "@/lib/constants";
 
 // ============================================================
@@ -35,8 +36,9 @@ function asciiBar(filled: number, total: number): string {
 }
 
 export function SummaryDialog() {
-  const { sessionDone, sessionAnswers, startNewSession, dismissSummaryToLastQ, dismissing, signOut } = useApp();
+  const { sessionDone, sessionAnswers, questionPackId, startNewSession, dismissSummaryToLastQ, dismissing, signOut } = useApp();
   const { t, locale } = useI18n();
+  const summaryViewTrackedRef = useRef("");
 
   const stats = useMemo(() => {
     let majorityHits = 0;
@@ -73,6 +75,14 @@ export function SummaryDialog() {
       : "var(--foreground)";
 
   const handleShare = async () => {
+    track("share_tap", {
+      metadata: {
+        surface: "summary",
+        profile,
+        answered_count: sessionAnswers.length,
+        question_pack_id: questionPackId,
+      },
+    });
     const text =
       locale === "ja"
         ? `TuringVote で ${sessionAnswers.length}問回答 → ${profileLabel}`
@@ -117,6 +127,22 @@ export function SummaryDialog() {
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [sessionDone]);
+
+  useEffect(() => {
+    if (!sessionDone || dismissing) return;
+    const signature = `${questionPackId ?? "none"}:${sessionAnswers
+      .map((a) => a.question_id)
+      .join(",")}`;
+    if (summaryViewTrackedRef.current === signature) return;
+    summaryViewTrackedRef.current = signature;
+    track("summary_view", {
+      metadata: {
+        profile,
+        answered_count: sessionAnswers.length,
+        question_pack_id: questionPackId,
+      },
+    });
+  }, [sessionDone, dismissing, sessionAnswers, profile, questionPackId]);
 
   return (
     <Dialog open={sessionDone && !dismissing} onOpenChange={handleClose}>
@@ -190,6 +216,12 @@ export function SummaryDialog() {
             style={{ color: "var(--muted-foreground)" }}
           >
             {profileDesc}
+          </p>
+          <p
+            className="text-[12px] mt-3 leading-relaxed font-mono-feature"
+            style={{ color: "var(--terminal-dim)" }}
+          >
+            {t("summary.returnCue")}
           </p>
         </motion.div>
 

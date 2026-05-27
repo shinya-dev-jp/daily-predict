@@ -170,6 +170,7 @@ export function VoteScreen() {
     isSubmitting,
     sessionIndex,
     sessionQuestions,
+    questionPackId,
     handleVote,
     advanceToNext,
   } = useApp();
@@ -248,6 +249,14 @@ export function VoteScreen() {
         <span className="uppercase tracking-widest text-[10px] opacity-80">
           {currentQuestion.category}
         </span>
+        {questionPackId && (
+          <>
+            <span className="opacity-60">·</span>
+            <span className="uppercase tracking-widest text-[10px] opacity-80">
+              {t("pack.weekly")}
+            </span>
+          </>
+        )}
         {userVote && (
           <span
             className="ml-auto inline-flex items-center gap-1 text-[10px] tracking-widest uppercase"

@@ -17,6 +17,7 @@ import type { Question, Tally, UserProfile, VoteChoice } from "@/lib/types";
 // require zero auth dialogs (cookie + DB flag).
 import { MiniKit, VerificationLevel } from "@worldcoin/minikit-js";
 import { SESSION_SIZE } from "@/lib/constants";
+import { track } from "@/lib/track";
 
 // ============================================================
 // Utility
@@ -87,6 +88,8 @@ export interface SessionAnswer {
 interface AppState {
   /** Questions loaded for the current 5-question session */
   sessionQuestions: Question[];
+  /** Weekly cohort id returned by /api/questions?pack=current */
+  questionPackId: string | null;
   /** 0-indexed position within the current session */
   sessionIndex: number;
   /** User's answer + resulting tally for each question so far */
@@ -190,6 +193,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [sessionQuestions, setSessionQuestions] = useState<Question[]>(() =>
     preview ? DEMO_QUESTIONS : []
   );
+  const [questionPackId, setQuestionPackId] = useState<string | null>(() =>
+    preview ? "preview" : null
+  );
   const [sessionIndex, setSessionIndex] = useState(0);
   const [sessionAnswers, setSessionAnswers] = useState<SessionAnswer[]>([]);
 
@@ -233,8 +239,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
 
   const submittingRef = useRef(false);
+  const appOpenTrackedRef = useRef(false);
+  const sessionStartTrackedRef = useRef("");
   // 直前 fetch の cancel 用 trigger(loadSession を再利用するため)
   const [reloadTick, setReloadTick] = useState(0);
+
+  useEffect(() => {
+    if (appOpenTrackedRef.current) return;
+    appOpenTrackedRef.current = true;
+    track("app_open", { metadata: { preview } });
+  }, [preview]);
 
   // ── Load a new session on mount (non-preview) ────────────────────────────
   // CRITICAL FIX (2026-04-19 Shinya 実機 bug): votedQuestionIds is intentionally
@@ -267,8 +281,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       try {
         const excludeCsv = Array.from(votedQuestionIds).join(",");
         const qs = excludeCsv
-          ? `?count=${SESSION_SIZE}&exclude=${excludeCsv}`
-          : `?count=${SESSION_SIZE}`;
+          ? `?count=${SESSION_SIZE}&pack=current&exclude=${excludeCsv}`
+          : `?count=${SESSION_SIZE}&pack=current`;
         const res = await fetch(`/api/questions${qs}`, {
           credentials: "include",
           signal: controller.signal,
@@ -277,6 +291,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const json = await res.json();
         if (!cancelled && Array.isArray(json.questions)) {
           setSessionQuestions(json.questions as Question[]);
+          setQuestionPackId(
+            typeof json.question_pack_id === "string" ? json.question_pack_id : null
+          );
           setAllCompleted(json.questions.length === 0);
         }
       } catch (err) {
@@ -326,6 +343,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
     (address: string, profile: UserProfile) => {
       setWalletAddress(address);
       setUserProfile(profile);
+      track("auth_success");
+      try {
+        const now = new Date().toISOString();
+        const previous = window.localStorage.getItem("tv.last_auth_seen_at");
+        if (previous) {
+          track("return_visit", {
+            metadata: {
+              previous_seen_at: previous,
+            },
+          });
+        }
+        window.localStorage.setItem("tv.last_auth_seen_at", now);
+      } catch {
+        // localStorage availability is not required for retention analytics.
+      }
       if (profile.voted_question_ids && profile.voted_question_ids.length > 0) {
         setVotedQuestionIds(new Set(profile.voted_question_ids));
       }
@@ -451,6 +483,27 @@ export function AppProvider({ children }: { children: ReactNode }) {
         // userVote は optimistic で既にセット済み。tally 反映のみここで行う。
 
         setCurrentTally(tally);
+        const nextAnswerCount = sessionAnswers.length + 1;
+        track("vote", {
+          metadata: {
+            position: nextAnswerCount,
+            question_id: currentQ.id,
+            question_pack_id: questionPackId,
+          },
+        });
+        if (nextAnswerCount === 1) {
+          track("first_vote", {
+            metadata: { question_pack_id: questionPackId },
+          });
+        }
+        if (nextAnswerCount >= Math.min(sessionQuestions.length, SESSION_SIZE)) {
+          track("fifth_vote", {
+            metadata: {
+              answered_count: nextAnswerCount,
+              question_pack_id: questionPackId,
+            },
+          });
+        }
         setSessionAnswers((prev) => [
           ...prev,
           { question_id: currentQ.id, choice, tally },
@@ -479,7 +532,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         submittingRef.current = false;
       }
     },
-    [sessionQuestions, sessionIndex, walletAddress, ensureOrbVerified]
+    [sessionQuestions, sessionIndex, sessionAnswers.length, questionPackId, walletAddress, ensureOrbVerified]
   );
 
   // ── Advance to next question in the session ──────────────────────────────
@@ -558,6 +611,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setWalletAddress(null);
     setUserProfile(null);
     setSessionQuestions([]);
+    setQuestionPackId(null);
     setSessionIndex(0);
     setSessionAnswers([]);
     setUserVote(null);
@@ -600,19 +654,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     if (isPreviewMode()) {
       setSessionQuestions(DEMO_QUESTIONS);
+      setQuestionPackId("preview");
       setIsLoadingSession(false);
       return;
     }
 
     try {
       const qs = excludeIdsCsv
-        ? `?count=${SESSION_SIZE}&exclude=${excludeIdsCsv}`
-        : `?count=${SESSION_SIZE}`;
+        ? `?count=${SESSION_SIZE}&pack=current&exclude=${excludeIdsCsv}`
+        : `?count=${SESSION_SIZE}&pack=current`;
       const res = await fetch(`/api/questions${qs}`, { credentials: "include" });
       if (res.ok) {
         const json = await res.json();
         if (Array.isArray(json.questions)) {
           setSessionQuestions(json.questions as Question[]);
+          setQuestionPackId(
+            typeof json.question_pack_id === "string" ? json.question_pack_id : null
+          );
           setAllCompleted(json.questions.length === 0);
         }
       } else {
@@ -631,6 +689,28 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const currentQuestion = sessionQuestions[sessionIndex] ?? null;
+
+  useEffect(() => {
+    if (!walletAddress || isLoadingSession || sessionQuestions.length === 0) return;
+    const signature = `${walletAddress}:${questionPackId ?? "none"}:${sessionQuestions
+      .map((q) => q.id)
+      .join(",")}`;
+    if (sessionStartTrackedRef.current === signature) return;
+    sessionStartTrackedRef.current = signature;
+    track("session_start", {
+      metadata: {
+        question_pack_id: questionPackId,
+        question_count: sessionQuestions.length,
+      },
+    });
+    track("question_pack_view", {
+      metadata: {
+        question_pack_id: questionPackId,
+        question_count: sessionQuestions.length,
+      },
+    });
+  }, [walletAddress, isLoadingSession, sessionQuestions, questionPackId]);
+
   // I8: tc_questions.json の件数や ?exclude=... の関係で 5問未満しか
   // 返ってこないケース(= 既にほぼ全問回答済 or 設定ミス)でも、
   // summary に到達できるようにしておく。基準は常に「現在の
@@ -648,6 +728,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const value = useMemo<AppState>(
     () => ({
       sessionQuestions,
+      questionPackId,
       sessionIndex,
       sessionAnswers,
       sessionDone,
@@ -670,6 +751,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }),
     [
       sessionQuestions,
+      questionPackId,
       sessionIndex,
       sessionAnswers,
       sessionDone,

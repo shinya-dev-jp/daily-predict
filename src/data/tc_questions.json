@@ -14,10 +14,10 @@
     "絶対正解なし・誰も傷つけない",
     "翻訳は Claude 任せ方針(Q3=C・handoff 参照)",
     "1問あたり JA/EN 併記・option_a/b は並置・意図的にニュートラル順序",
-    "DB 側 tc_questions の prompt text は未同期(tc_question_tally view は question_id と category のみ参照するため UX 影響ゼロ・将来 DB マイグレーションで同期予定)"
+    "DB 側 tc_questions の prompt text は 20260524_turingvote_retention_weekly_questions.sql で ID 31-45 を同期予定。migration 適用前に deploy しないこと"
   ],
   "schema_version": "1.0",
-  "total_questions": 30,
+  "total_questions": 45,
   "questions": [
     {"id": 1, "category": "lifestyle", "ja": {"prompt": "あなたはどっち派？", "option_a": "朝型", "option_b": "夜型"}, "en": {"prompt": "Which are you?", "option_a": "Morning person", "option_b": "Night owl"}},
     {"id": 2, "category": "preference", "ja": {"prompt": "休日を過ごすなら？", "option_a": "山", "option_b": "海"}, "en": {"prompt": "How would you spend a day off?", "option_a": "Mountains", "option_b": "Ocean"}},
@@ -48,6 +48,21 @@
     {"id": 27, "category": "values", "ja": {"prompt": "理想の生き方は？", "option_a": "夢を追う", "option_b": "今を楽しむ"}, "en": {"prompt": "Ideal way of living?", "option_a": "Chase dreams", "option_b": "Enjoy the present"}},
     {"id": 28, "category": "preference", "ja": {"prompt": "本を読むなら？", "option_a": "物語(小説)", "option_b": "実用書"}, "en": {"prompt": "Books you read?", "option_a": "Fiction", "option_b": "Non-fiction"}},
     {"id": 29, "category": "lifestyle", "ja": {"prompt": "休息の仕方は？", "option_a": "しっかり寝る", "option_b": "活動的にリフレッシュ"}, "en": {"prompt": "How do you rest?", "option_a": "Sleep deeply", "option_b": "Active refresh"}},
-    {"id": 30, "category": "values", "ja": {"prompt": "幸せとは？", "option_a": "穏やかさ", "option_b": "充実感"}, "en": {"prompt": "Happiness is?", "option_a": "Calm peace", "option_b": "Full engagement"}}
+    {"id": 30, "category": "values", "ja": {"prompt": "幸せとは？", "option_a": "穏やかさ", "option_b": "充実感"}, "en": {"prompt": "Happiness is?", "option_a": "Calm peace", "option_b": "Full engagement"}},
+    {"id": 31, "category": "lifestyle", "ja": {"prompt": "自由な1時間ができたら？", "option_a": "外に出る", "option_b": "家で過ごす"}, "en": {"prompt": "A free hour opens up?", "option_a": "Step outside", "option_b": "Stay in"}},
+    {"id": 32, "category": "style", "ja": {"prompt": "作業机は？", "option_a": "すっきり整理", "option_b": "少し散らかっている"}, "en": {"prompt": "Your workspace?", "option_a": "Clear desk", "option_b": "Cozy mess"}},
+    {"id": 33, "category": "preference", "ja": {"prompt": "道を選ぶなら？", "option_a": "最短ルート", "option_b": "景色のいい道"}, "en": {"prompt": "Choosing a route?", "option_a": "Fastest way", "option_b": "Scenic way"}},
+    {"id": 34, "category": "lifestyle", "ja": {"prompt": "夜の過ごし方は？", "option_a": "静かに整える", "option_b": "少し冒険する"}, "en": {"prompt": "Evening mood?", "option_a": "Quiet reset", "option_b": "Small adventure"}},
+    {"id": 35, "category": "style", "ja": {"prompt": "学び方は？", "option_a": "短く何度も", "option_b": "深くじっくり"}, "en": {"prompt": "Learning style?", "option_a": "Short lessons", "option_b": "Deep dives"}},
+    {"id": 36, "category": "preference", "ja": {"prompt": "連絡するなら？", "option_a": "まずテキスト", "option_b": "まず声で話す"}, "en": {"prompt": "Getting in touch?", "option_a": "Text first", "option_b": "Voice first"}},
+    {"id": 37, "category": "style", "ja": {"prompt": "予定が変わったら？", "option_a": "組み直す", "option_b": "その場で合わせる"}, "en": {"prompt": "Plans changed?", "option_a": "Rebuild the plan", "option_b": "Improvise"}},
+    {"id": 38, "category": "lifestyle", "ja": {"prompt": "小休憩するなら？", "option_a": "体を伸ばす", "option_b": "軽く食べる"}, "en": {"prompt": "A small break?", "option_a": "Stretch", "option_b": "Snack"}},
+    {"id": 39, "category": "style", "ja": {"prompt": "荷物は？", "option_a": "必要最小限", "option_b": "予備も持つ"}, "en": {"prompt": "Packing light?", "option_a": "Essentials only", "option_b": "Extra options"}},
+    {"id": 40, "category": "preference", "ja": {"prompt": "初めての場所では？", "option_a": "地図を先に見る", "option_b": "歩きながら探す"}, "en": {"prompt": "In a new place?", "option_a": "Map it first", "option_b": "Explore first"}},
+    {"id": 41, "category": "style", "ja": {"prompt": "創作を始めるなら？", "option_a": "構成から", "option_b": "遊びながら"}, "en": {"prompt": "Starting something creative?", "option_a": "Start with structure", "option_b": "Start with play"}},
+    {"id": 42, "category": "values", "ja": {"prompt": "みんなで決める時は？", "option_a": "すぐ投票する", "option_b": "もう少し話す"}, "en": {"prompt": "A group decision?", "option_a": "Vote quickly", "option_b": "Discuss more"}},
+    {"id": 43, "category": "lifestyle", "ja": {"prompt": "空いた朝は？", "option_a": "早めに出かける", "option_b": "ゆっくり始める"}, "en": {"prompt": "A free morning?", "option_a": "Go out early", "option_b": "Slow start"}},
+    {"id": 44, "category": "values", "ja": {"prompt": "贈り物を選ぶなら？", "option_a": "実用的なもの", "option_b": "その人らしいもの"}, "en": {"prompt": "Choosing a gift?", "option_a": "Practical", "option_b": "Personal"}},
+    {"id": 45, "category": "style", "ja": {"prompt": "謎を解くなら？", "option_a": "まず試す", "option_b": "先に考える"}, "en": {"prompt": "Solving a puzzle?", "option_a": "Try first", "option_b": "Think first"}}
   ]
 }

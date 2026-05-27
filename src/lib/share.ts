@@ -28,7 +28,7 @@ export async function shareText(text: string): Promise<boolean> {
         url: APP_DEEP_LINK,
       });
       if (result?.finalPayload) {
-        track("share", { metadata: { surface: "minikit" } });
+        track("share_success", { metadata: { surface: "minikit" } });
         return true;
       }
     }
@@ -40,7 +40,7 @@ export async function shareText(text: string): Promise<boolean> {
   if (typeof navigator !== "undefined" && navigator.share) {
     try {
       await navigator.share({ text, title: "TuringVote", url: APP_DEEP_LINK });
-      track("share", { metadata: { surface: "web_share" } });
+      track("share_success", { metadata: { surface: "web_share" } });
       return true;
     } catch {
       // User cancelled or not supported
@@ -51,7 +51,7 @@ export async function shareText(text: string): Promise<boolean> {
   if (typeof navigator !== "undefined" && navigator.clipboard) {
     try {
       await navigator.clipboard.writeText(`${text}\n\n${APP_DEEP_LINK}`);
-      track("share", { metadata: { surface: "clipboard" } });
+      track("share_success", { metadata: { surface: "clipboard" } });
       return true;
     } catch {
       // Clipboard not available
