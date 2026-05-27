@@ -1,12 +1,42 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Loader2, ArrowRight, Check } from "lucide-react";
 import { useApp, SESSION_SIZE } from "@/components/providers/AppProvider";
 import { useI18n } from "@/i18n";
 import { ASCII_BAR_WIDTH } from "@/lib/constants";
 import type { VoteChoice, Tally } from "@/lib/types";
+
+/**
+ * 2026-05-27 UX update — verdict variants based on % magnitude.
+ * Returns the i18n key for the verdict text given the user's side percentage.
+ * Keeps the old vote.verdictMajority / vote.verdictMinority keys as fallback
+ * but they are unused by VoteScreen now (kept in i18n for backwards safety).
+ *
+ * Magnitude tiers — agreed in 36-role fullharness (2026-05-27, Critical=0):
+ *   90%+        → overwhelming
+ *   60-89%      → clear majority
+ *   50-59%      → slim majority
+ *   40-49%      → slim minority
+ *   25-39%      → against the crowd
+ *   10-24%      → rare take
+ *   <10%        → outlier
+ *
+ * No "streak / fastest / unique" gamification language — Worldcoin
+ * anti-engagement-farming compliance maintained.
+ */
+function pickVerdictKey(userPct: number): string {
+  if (userPct >= 90) return "vote.verdictOverwhelming";
+  if (userPct >= 60) return "vote.verdictClear";
+  if (userPct >= 50) return "vote.verdictSlimMajority";
+  if (userPct >= 40) return "vote.verdictSlimMinority";
+  if (userPct >= 25) return "vote.verdictAgainstCrowd";
+  if (userPct >= 10) return "vote.verdictRare";
+  return "vote.verdictOutlier";
+}
+
+const FIRST_TIME_HINT_FLAG = "turingvote_seen_intro";
 
 // ============================================================
 // "Human Pulse Terminal" — Card-centered terminal-themed vote screen
@@ -177,6 +207,25 @@ export function VoteScreen() {
   const { locale, t } = useI18n();
   const [error, setError] = useState<string | null>(null);
 
+  // 2026-05-27 UX update — first-time intro hint.
+  // Shows the value-prop one-liner above question #1 once per device, then
+  // never again. Uses localStorage; gracefully no-ops if storage is blocked
+  // (private browsing / Safari restricted) — flag read failure means we just
+  // show the hint, which is acceptable.
+  const [showIntroHint, setShowIntroHint] = useState(false);
+  useEffect(() => {
+    try {
+      const seen = window.localStorage.getItem(FIRST_TIME_HINT_FLAG);
+      if (!seen) {
+        setShowIntroHint(true);
+        window.localStorage.setItem(FIRST_TIME_HINT_FLAG, "1");
+      }
+    } catch {
+      // Storage unavailable — show the hint this session, no persistence.
+      setShowIntroHint(true);
+    }
+  }, []);
+
   // R4 C-R4-1 defensive guard: error path で setUserVote(null) 巻き戻し後に
   //   submittingRef が false になり、ユーザーが即別 option を連打すると二重
   //   POST の恐れを Round 4 Evaluator が指摘。実際には closure ガード + disabled
@@ -219,15 +268,15 @@ export function VoteScreen() {
   const totalQuestions = Math.max(sessionQuestions.length, SESSION_SIZE);
   const questionNum = sessionIndex + 1;
 
-  // Verdict: did the user side with the majority?
-  const userOnMajoritySide = userVote
-    ? (userVote === "A" ? aPct >= 50 : bPct >= 50)
+  // Verdict: which % tier does the user's side land in?
+  // 2026-05-27 update — replaced binary majority/minority with 7-tier variants
+  // (see pickVerdictKey above). Verdict text now includes the % itself via {n}.
+  const userSidePct = userVote
+    ? userVote === "A"
+      ? aPct
+      : bPct
     : null;
-  const verdictKey = userOnMajoritySide === null
-    ? null
-    : userOnMajoritySide
-      ? "vote.verdictMajority"
-      : "vote.verdictMinority";
+  const verdictKey = userSidePct === null ? null : pickVerdictKey(userSidePct);
 
   return (
     <div className="flex-1 flex flex-col px-4 pt-16 pb-6 overflow-y-auto">
@@ -273,6 +322,26 @@ export function VoteScreen() {
         className="h-px w-full mb-6"
         style={{ background: "var(--border)" }}
       />
+
+      {/* ─── First-time intro hint (shown only on question #1 of first ever session) ─── */}
+      {/* 2026-05-27 UX update — localStorage-gated. Auto-dismisses on subsequent
+          sessions. Plain text only, no interaction needed. */}
+      {showIntroHint && questionNum === 1 && !userVote && (
+        <motion.div
+          initial={{ opacity: 0, y: -4 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="font-mono-feature text-[11px] mb-5 px-3 py-2 rounded-md border"
+          style={{
+            color: "var(--terminal-dim)",
+            borderColor: "var(--border)",
+            background: "color-mix(in oklch, var(--terminal-prompt) 5%, transparent)",
+          }}
+        >
+          <span style={{ color: "var(--terminal-prompt)" }}>{">"}</span>{" "}
+          {t("vote.firstTimeHint")}
+        </motion.div>
+      )}
 
       {/* ─── Question card ──────────────────────────────────────── */}
       <motion.div
@@ -367,12 +436,12 @@ export function VoteScreen() {
                 className="font-mono-feature text-[11px] flex-1 leading-snug"
                 style={{ color: "var(--terminal-dim)" }}
               >
-                {currentTally && verdictKey && (
+                {currentTally && verdictKey && userSidePct !== null && (
                   <div
                     className="font-semibold mb-0.5"
                     style={{ color: "var(--foreground)" }}
                   >
-                    {t(verdictKey)}
+                    {t(verdictKey).replace("{n}", String(userSidePct))}
                   </div>
                 )}
                 {currentTally

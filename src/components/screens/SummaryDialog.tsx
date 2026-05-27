@@ -83,10 +83,14 @@ export function SummaryDialog() {
         question_pack_id: questionPackId,
       },
     });
+    // 2026-05-27 UX update — add profile emoji for visual differentiation
+    // in share dialogs (majority=🟦, minority=🟧, balanced=⚪).
+    const profileEmoji =
+      profile === "majority" ? "🟦" : profile === "minority" ? "🟧" : "⚪";
     const text =
       locale === "ja"
-        ? `TuringVote で ${sessionAnswers.length}問回答 → ${profileLabel}`
-        : `I just answered ${sessionAnswers.length} TuringVote questions — ${profileLabel}`;
+        ? `🧠 ${profileEmoji} TuringVote で私は${profileLabel}でした。あなたはどう？ →`
+        : `🧠 ${profileEmoji} I'm ${profileLabel} on TuringVote. Compare your answer →`;
     await shareText(text);
   };
 

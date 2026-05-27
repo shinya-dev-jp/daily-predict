@@ -83,13 +83,15 @@ export function AllCompletedScreen() {
       </p>
 
       {/* Brand reinforcement */}
+      {/* 2026-05-27 UX update — align with summary.returnCue: explicit weekly
+          cadence (Monday UTC) to give users a memorable return anchor. */}
       <p
         className="text-xs mb-10"
         style={{ color: "var(--foreground)", opacity: 0.5 }}
       >
         {locale === "ja"
-          ? "新しい質問が追加されたら、自動的にここに現れます。"
-          : "When new questions are added, they'll show up here automatically."}
+          ? "毎週月曜(UTC)に新しい質問が追加されます。"
+          : "New questions every Monday (UTC)."}
       </p>
 
       {/* Share */}
