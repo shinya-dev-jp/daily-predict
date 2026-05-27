@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { MiniKitWrapper } from "@/components/providers/MiniKitWrapper";
 import { Toaster } from "@worldcoin/mini-apps-ui-kit-react";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import { Geist, Geist_Mono } from "next/font/google";
 import { cn } from "@/lib/utils";
@@ -84,6 +86,22 @@ export default function RootLayout({
           {children}
           <Toaster />
         </MiniKitWrapper>
+        {/*
+         * 2026-05-27 — Vercel Analytics + Speed Insights.
+         * Analytics: page views + referrers + (eventually) custom events.
+         * Speed Insights: Core Web Vitals (LCP / CLS / INP) from real users.
+         *
+         * Both ship client-side scripts that auto-detect the Vercel deployment
+         * context. No env vars needed; the dashboard at vercel.com/<scope>/
+         * <project>/analytics + /speed-insights populates within ~24h.
+         *
+         * Privacy: both products are anonymous by default (no PII, no cookies
+         * unless the user explicitly enables identified analytics, which we
+         * do not). This is intentionally compatible with TuringVote's
+         * privacy posture (no tracking, no fingerprinting).
+         */}
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
