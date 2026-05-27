@@ -37,6 +37,14 @@
   "summary.playAgain": "New session",
   "summary.share": "Share",
   "summary.exit": "Exit",
+  "summary.patternHeader": "Your TuringVote pattern so far",
+  "summary.patternLine": "Across {sessions} sessions, you've leaned majority {majorityPct}% of the time.",
+  "summary.contrarianHeader": "Most contrarian moment",
+  "summary.contrarianStat": "Only {pct}% of Orb-verified humans chose like you.",
+  "summary.alignedHeader": "Most aligned moment",
+  "summary.alignedStat": "{pct}% of Orb-verified humans chose like you.",
+  "summary.discussHeader": "Talk about this with a friend",
+  "summary.discussSubtext": "This week's most evenly-split question among Orb-verified humans.",
 
   "pack.weekly": "This week",
 

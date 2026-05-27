@@ -37,6 +37,14 @@
   "summary.playAgain": "新しいセッション",
   "summary.share": "シェア",
   "summary.exit": "終了する",
+  "summary.patternHeader": "これまでのあなたのTuringVoteパターン",
+  "summary.patternLine": "{sessions}回のセッションで、{majorityPct}%は多数派側でした。",
+  "summary.contrarianHeader": "最も少数派だった瞬間",
+  "summary.contrarianStat": "Orb認証済み人間のうち{pct}%だけがあなたと同じ選択。",
+  "summary.alignedHeader": "最も多数派だった瞬間",
+  "summary.alignedStat": "Orb認証済み人間の{pct}%があなたと同じ選択。",
+  "summary.discussHeader": "友達と話してみる種",
+  "summary.discussSubtext": "今週、Orb認証済み人間の意見が最も二分された質問。",
 
   "pack.weekly": "今週の5問",
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { RotateCcw, Share2, LogOut } from "lucide-react";
 import {
@@ -35,10 +35,69 @@ function asciiBar(filled: number, total: number): string {
   return "█".repeat(fillCount) + "░".repeat(SUMMARY_BAR_WIDTH - fillCount);
 }
 
+/**
+ * Shape of the /api/me/profile response when the user has crossed the
+ * MIN_VOTES_FOR_PROFILE threshold (10 votes / ~2 sessions).
+ */
+interface ProfileMoment {
+  questionId: number;
+  userSidePct: number;
+  promptEn: string;
+  promptJa: string;
+}
+
+interface ProfileReady {
+  ready: true;
+  totalVotes: number;
+  completedSessions: number;
+  majorityCount: number;
+  minorityCount: number;
+  majorityPct: number;
+  mostContrarian: ProfileMoment | null;
+  mostAligned: ProfileMoment | null;
+}
+
+interface ProfileNotReady {
+  ready: false;
+  totalVotes: number;
+  minVotesForProfile: number;
+}
+
+type ProfileResponse = ProfileReady | ProfileNotReady;
+
 export function SummaryDialog() {
-  const { sessionDone, sessionAnswers, questionPackId, startNewSession, dismissSummaryToLastQ, dismissing, signOut } = useApp();
+  const { sessionDone, sessionAnswers, sessionQuestions, questionPackId, startNewSession, dismissSummaryToLastQ, dismissing, signOut } = useApp();
   const { t, locale } = useI18n();
   const summaryViewTrackedRef = useRef("");
+
+  // 2026-05-27 — "Your TuringVote pattern so far" self-mirror.
+  // Fetched once per dialog open (sessionDone transitions to true). Failure
+  // (network / 401 / 500) silently hides the section — no error UI, no retry,
+  // no notification. The aggregate is a nice-to-have, never blocks the core
+  // summary flow.
+  // (Named `userPattern` to avoid shadowing the existing `profile`
+  //  local for majority/minority/balanced classification below.)
+  const [userPattern, setUserPattern] = useState<ProfileResponse | null>(null);
+  useEffect(() => {
+    if (!sessionDone) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/me/profile", {
+          credentials: "same-origin",
+          cache: "no-store",
+        });
+        if (!res.ok) return;
+        const data = (await res.json()) as ProfileResponse;
+        if (!cancelled) setUserPattern(data);
+      } catch {
+        // Silently ignore — pattern section is optional UX.
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [sessionDone]);
 
   const stats = useMemo(() => {
     let majorityHits = 0;
@@ -96,6 +155,32 @@ export function SummaryDialog() {
 
   const profileTagSlug =
     profile === "majority" ? "majority" : profile === "minority" ? "minority" : "balanced";
+
+  // 2026-05-27 — "conversation seed" (E in 36/44-role fullharness): pick the
+  // session's most evenly-split question to suggest as a topic to discuss
+  // with a friend. Computed from sessionAnswers (this session only) — no
+  // server roundtrip. Empty when no tally data is available.
+  // Question text is resolved from sessionQuestions via question_id lookup.
+  const conversationSeed = useMemo(() => {
+    const questionById = new Map(sessionQuestions.map((q) => [q.id, q]));
+    let closest: { questionId: number; gap: number; promptEn: string; promptJa: string } | null = null;
+    for (const a of sessionAnswers) {
+      if (!a.tally || a.tally.total_votes === 0) continue;
+      const q = questionById.get(a.question_id);
+      if (!q) continue;
+      const aPct = (a.tally.votes_a / a.tally.total_votes) * 100;
+      const gap = Math.abs(aPct - 50); // 0 = perfectly split, 50 = unanimous
+      if (!closest || gap < closest.gap) {
+        closest = {
+          questionId: a.question_id,
+          gap,
+          promptEn: q.en?.prompt ?? "",
+          promptJa: q.ja?.prompt ?? "",
+        };
+      }
+    }
+    return closest;
+  }, [sessionAnswers, sessionQuestions]);
 
   // Q3-dismiss (2026-04-19 Shinya 実機 2nd feedback):
   //   ✕/ESC で dialog を閉じるだけでなく、sessionIndex を最後の回答済み Q に
@@ -250,6 +335,102 @@ export function SummaryDialog() {
             color="var(--option-b)"
           />
         </div>
+
+        {/* 2026-05-27 — "Your TuringVote pattern so far" self-mirror.
+            Only shown when user has ≥10 votes (≥2 sessions). Self-only data:
+            no leaderboard, no comparison to other users, no streak counters.
+            Worldcoin-policy compliant per portal_config.json "self-profile"
+            utility framing. */}
+        {userPattern && userPattern.ready && (
+          <motion.div
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="px-5 py-4 border-b"
+            style={{ borderColor: "var(--border)" }}
+          >
+            <div
+              className="font-mono-feature text-[10px] uppercase tracking-widest mb-2"
+              style={{ color: "var(--terminal-dim)" }}
+            >
+              {t("summary.patternHeader")}
+            </div>
+            <p
+              className="text-[13px] leading-relaxed mb-3"
+              style={{ color: "var(--foreground)" }}
+            >
+              {t("summary.patternLine")
+                .replace("{sessions}", String(userPattern.completedSessions))
+                .replace("{majorityPct}", String(userPattern.majorityPct))}
+            </p>
+            {userPattern.mostContrarian && (
+              <div className="mb-2">
+                <div
+                  className="font-mono-feature text-[10px] uppercase tracking-widest mb-0.5"
+                  style={{ color: "var(--option-b)" }}
+                >
+                  {t("summary.contrarianHeader")}
+                </div>
+                <p
+                  className="text-[12px] leading-snug"
+                  style={{ color: "var(--muted-foreground)" }}
+                >
+                  &ldquo;{locale === "ja" ? userPattern.mostContrarian.promptJa : userPattern.mostContrarian.promptEn}&rdquo;
+                  <br />
+                  {t("summary.contrarianStat").replace("{pct}", String(userPattern.mostContrarian.userSidePct))}
+                </p>
+              </div>
+            )}
+            {userPattern.mostAligned && (
+              <div>
+                <div
+                  className="font-mono-feature text-[10px] uppercase tracking-widest mb-0.5"
+                  style={{ color: "var(--option-a)" }}
+                >
+                  {t("summary.alignedHeader")}
+                </div>
+                <p
+                  className="text-[12px] leading-snug"
+                  style={{ color: "var(--muted-foreground)" }}
+                >
+                  &ldquo;{locale === "ja" ? userPattern.mostAligned.promptJa : userPattern.mostAligned.promptEn}&rdquo;
+                  <br />
+                  {t("summary.alignedStat").replace("{pct}", String(userPattern.mostAligned.userSidePct))}
+                </p>
+              </div>
+            )}
+          </motion.div>
+        )}
+
+        {/* 2026-05-27 — Conversation seed (E): suggest this session's
+            most-evenly-split question as a topic to discuss with a friend.
+            Pure copy — no action required. */}
+        {conversationSeed && conversationSeed.gap < 25 && (
+          <motion.div
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.35 }}
+            className="px-5 py-3 border-b"
+            style={{ borderColor: "var(--border)" }}
+          >
+            <div
+              className="font-mono-feature text-[10px] uppercase tracking-widest mb-1"
+              style={{ color: "var(--terminal-dim)" }}
+            >
+              {t("summary.discussHeader")}
+            </div>
+            <p
+              className="text-[12px] leading-snug"
+              style={{ color: "var(--muted-foreground)" }}
+            >
+              &ldquo;{locale === "ja" ? conversationSeed.promptJa : conversationSeed.promptEn}&rdquo;
+              <br />
+              <span className="font-mono-feature text-[11px]" style={{ color: "var(--terminal-dim)" }}>
+                {t("summary.discussSubtext")}
+              </span>
+            </p>
+          </motion.div>
+        )}
 
         {/* Actions */}
         <div className="flex flex-col gap-2 px-5 pt-4 pb-5">
