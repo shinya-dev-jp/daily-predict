@@ -63,27 +63,34 @@ export async function shareText(text: string): Promise<boolean> {
 
 /**
  * Build share text for a prediction result.
+ *
+ * 2026-05-27 update: shift from generic "got it right" framing to
+ * "Orb-verified humans" emphasis to (a) align with the description /
+ * \u4EBA\u9593\u9650\u5B9A category framing, and (b) differentiate from earn-loop apps
+ * in the same category. EN strings only \u2014 JP localized variant is tracked
+ * separately.
  */
 export function buildResultShareText(
   questionEn: string,
   isCorrect: boolean,
   correctPercent: number
 ): string {
-  const emoji = isCorrect ? "\u2705" : "\u274C";
   return isCorrect
-    ? `${emoji} I was in the ${correctPercent}% who got it right on TuringVote!\n\n"${questionEn}"\n\n\uD83C\uDFAF Play now:`
-    : `${emoji} ${correctPercent}% of humans got today's TuringVote right \u2014 I wasn't one of them.\n\n"${questionEn}"\n\n\uD83C\uDFAF Play now:`;
+    ? `\uD83E\uDDE0 I was in the ${correctPercent}% of Orb-verified humans who got this right on TuringVote.\n\n"${questionEn}"\n\nCompare your answer \u2192`
+    : `\uD83E\uDDE0 ${correctPercent}% of Orb-verified humans got this right on TuringVote. I wasn't.\n\n"${questionEn}"\n\nWhere do you land? \u2192`;
 }
 
 /**
  * Build share text for a locked prediction (voted but not yet resolved).
+ *
+ * 2026-05-27 update: same rationale as buildResultShareText.
  */
 export function buildPredictionShareText(
   questionEn: string,
   chosenLabel: string,
   agreePercent: number
 ): string {
-  return `\uD83D\uDD2E I just predicted "${chosenLabel}" on TuringVote!\n\n"${questionEn}"\n\n${agreePercent}% agree with me. What do you think?\n\n\uD83C\uDFAF Play now:`;
+  return `\uD83E\uDDE0 I voted "${chosenLabel}" on TuringVote. ${agreePercent}% of Orb-verified humans agree.\n\n"${questionEn}"\n\nWhere do you land? \u2192`;
 }
 
 /**
