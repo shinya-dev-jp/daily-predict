@@ -296,7 +296,7 @@ export function VoteScreen() {
         </span>
         <span className="opacity-60">·</span>
         <span className="uppercase tracking-widest text-[10px] opacity-80">
-          {currentQuestion.category}
+          {t(`category.${currentQuestion.category}`)}
         </span>
         {questionPackId && (
           <>

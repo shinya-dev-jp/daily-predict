@@ -48,6 +48,12 @@
 
   "pack.weekly": "今週の5問",
 
+  "category.values": "価値観",
+  "category.preference": "好み",
+  "category.style": "スタイル",
+  "category.lifestyle": "ライフスタイル",
+  "category.ethics": "倫理",
+
   "verify.subtitle": "90秒でできる、Botに汚染されない人間の選好チェック。5つのA/B質問に答え、認証済み人間の分かれ方を見て、最後に自分の多数派/少数派プロフィールを確認できます。",
   "verify.feature1": "匿名ネット投票ではなく、自分の答えを認証済み人間の結果と比較できます",
   "verify.feature2": "各質問で、認証済み人間だけのリアルタイム比率を表示",

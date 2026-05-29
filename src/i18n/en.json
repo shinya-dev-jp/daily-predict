@@ -48,6 +48,12 @@
 
   "pack.weekly": "This week",
 
+  "category.values": "Values",
+  "category.preference": "Preference",
+  "category.style": "Style",
+  "category.lifestyle": "Lifestyle",
+  "category.ethics": "Ethics",
+
   "verify.subtitle": "A 90-second bot-resistant preference check. Answer 5 simple A/B questions, see how Verified Humans split, then get your majority/minority self-profile.",
   "verify.feature1": "Use it to compare your answers with verified-human results, not anonymous internet polls",
   "verify.feature2": "Each question shows the live split from Verified Humans only",
