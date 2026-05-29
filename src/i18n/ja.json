@@ -36,7 +36,7 @@
   "summary.profileMinorityDesc": "人と違う選択を好む傾向。独自の視点の持ち主です。",
   "summary.profileSplit": "バランス型",
   "summary.profileSplitDesc": "多数派にも少数派にも偏らない、フラットな感覚の持ち主。",
-  "summary.returnCue": "毎週月曜(UTC)に新しい質問が追加されます。次回もOrb認証済み人間の分かれ方を見に来てください。",
+  "summary.returnCue": "出題の5問は毎週月曜(UTC)に切り替わります。次回もOrb認証済み人間の分かれ方を見に来てください。",
   "summary.majorityCount": "多数派側",
   "summary.minorityCount": "少数派側",
   "summary.playAgain": "新しいセッション",
@@ -69,7 +69,7 @@
   "verify.footer": "1人の検証済み人間 · 1票",
 
   "about.title": "TuringVoteとは",
-  "about.intro": "TuringVoteは、Orb 認証済み人間だけの90秒選好チェックです。5つのA/B質問に答えると、世界中の認証済み人間がどう分かれたかを即座に確認でき、自分が多数派寄りか、流れに逆らう側か、バランス型かが見えてきます。新しい質問は毎週月曜(UTC)に追加されます。",
+  "about.intro": "TuringVoteは、Orb 認証済み人間だけの90秒選好チェックです。5つのA/B質問に答えると、世界中の認証済み人間がどう分かれたかを即座に確認でき、自分が多数派寄りか、流れに逆らう側か、バランス型かが見えてきます。出題の5問は毎週月曜(UTC)に切り替わります。",
   "about.utilityHeading": "使うと得られるもの",
   "about.utility1Title": "Bot に強い。設計から。",
   "about.utility1Desc": "オープンなネット投票は、Bot や重複アカウントで歪みます。TuringVote は World ID で「1人の認証済み人間につき1票」を強制 — 表示される%は本物の人間の選択であって、組織的なクリックではありません。",

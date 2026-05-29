@@ -36,7 +36,7 @@
   "summary.profileMinorityDesc": "You pick what most people don't. You see the angle others miss.",
   "summary.profileSplit": "Balanced",
   "summary.profileSplitDesc": "No strong lean toward majority or minority — a flat, even perspective.",
-  "summary.returnCue": "New questions every Monday (UTC). Come back to see how Orb-verified humans split next.",
+  "summary.returnCue": "A different set of 5 every Monday (UTC). Come back to see how Orb-verified humans split next.",
   "summary.majorityCount": "Majority",
   "summary.minorityCount": "Minority",
   "summary.playAgain": "New session",
@@ -69,7 +69,7 @@
   "verify.footer": "One Verified Human · One vote",
 
   "about.title": "About TuringVote",
-  "about.intro": "TuringVote is a 90-second preference check for Orb-verified humans only. Answer 5 quick A/B questions, see how verified humans worldwide split, and discover whether you lean with the majority, against the crowd, or sit balanced in between. New questions every Monday (UTC).",
+  "about.intro": "TuringVote is a 90-second preference check for Orb-verified humans only. Answer 5 quick A/B questions, see how verified humans worldwide split, and discover whether you lean with the majority, against the crowd, or sit balanced in between. A different set of 5 rotates in every Monday (UTC).",
   "about.utilityHeading": "What you get out of it",
   "about.utility1Title": "Bot-resistant. By design.",
   "about.utility1Desc": "Open polls online get distorted by bots and duplicate accounts. TuringVote uses World ID to enforce one vote per verified human — the percentages you see are real humans, not coordinated clicks.",

@@ -83,15 +83,18 @@ export function AllCompletedScreen() {
       </p>
 
       {/* Brand reinforcement */}
-      {/* 2026-05-27 UX update — align with summary.returnCue: explicit weekly
-          cadence (Monday UTC) to give users a memorable return anchor. */}
+      {/* 2026-05-27 UX update — weekly cadence return anchor.
+          2026-05-29 honesty fix: the weekly pack ROTATES a different 5 from the
+          existing pool each ISO week; it does NOT add new questions. Wording
+          corrected from "new questions added" to "a different set rotates in"
+          to avoid overclaiming. */}
       <p
         className="text-xs mb-10"
         style={{ color: "var(--foreground)", opacity: 0.5 }}
       >
         {locale === "ja"
-          ? "毎週月曜(UTC)に新しい質問が追加されます。"
-          : "New questions every Monday (UTC)."}
+          ? "出題の5問は毎週月曜(UTC)に切り替わります。"
+          : "A different set of 5 every Monday (UTC)."}
       </p>
 
       {/* Share */}
