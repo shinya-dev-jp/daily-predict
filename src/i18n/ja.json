@@ -22,6 +22,11 @@
   "vote.verdictRare": "珍しい視点。{n}%のOrb認証済み人間だけがこの選択。",
   "vote.verdictOutlier": "完全な少数派。{n}%だけがあなたと同じ選択。",
   "vote.firstTimeHint": "5問・90秒。Orb認証済みの人がどう分かれるか見られます。",
+  "error.network": "接続エラー。通信環境を確認して再試行してください。",
+  "error.auth": "セッションエラー。アプリを開き直してください。",
+  "error.verification": "投票には Orb 認証が必要です。",
+  "error.generic": "問題が発生しました。再試行してください。",
+  "error.retry": "再試行",
 
   "summary.title": "5問完了",
   "summary.subtitle": "Orb認証済み人間の中での、あなたの5問パターン",

@@ -38,6 +38,44 @@ function pickVerdictKey(userPct: number): string {
 
 const FIRST_TIME_HINT_FLAG = "turingvote_seen_intro";
 
+/**
+ * 2026-05-29 — Error UX (案2 fullharness).
+ * Classify a caught vote error into a localized, human-friendly i18n key.
+ * SECURITY: this stops raw internal error strings (e.g. "db_error",
+ * "forbidden_origin", "HTTP 500") from being shown to the user. Anything
+ * unrecognized falls through to a safe generic message.
+ */
+type VoteErrorKey =
+  | "error.network"
+  | "error.auth"
+  | "error.verification"
+  | "error.generic";
+
+function classifyVoteError(err: unknown): VoteErrorKey {
+  const msg = (err instanceof Error ? err.message : String(err)).toLowerCase();
+  if (
+    msg.includes("fetch") ||
+    msg.includes("network") ||
+    msg.includes("load failed") ||
+    msg.includes("timeout") ||
+    /http 5\d\d/.test(msg)
+  ) {
+    return "error.network";
+  }
+  if (msg.includes("orb verification") || msg.includes("needs_orb")) {
+    return "error.verification";
+  }
+  if (
+    msg.includes("not authenticated") ||
+    msg.includes("verification_failed") ||
+    msg.includes("http 401") ||
+    msg.includes("forbidden")
+  ) {
+    return "error.auth";
+  }
+  return "error.generic";
+}
+
 // ============================================================
 // "Human Pulse Terminal" — Card-centered terminal-themed vote screen
 // ----------------------------------------------------------------
@@ -205,7 +243,22 @@ export function VoteScreen() {
     advanceToNext,
   } = useApp();
   const { locale, t } = useI18n();
-  const [error, setError] = useState<string | null>(null);
+  const [errorKey, setErrorKey] = useState<VoteErrorKey | null>(null);
+
+  // 2026-05-29 — offline indicator (案2 fullharness).
+  // Init true to avoid SSR hydration mismatch (navigator is undefined on the
+  // server); the effect corrects it on the client and listens for changes.
+  const [isOnline, setIsOnline] = useState(true);
+  useEffect(() => {
+    const update = () => setIsOnline(navigator.onLine);
+    update();
+    window.addEventListener("online", update);
+    window.addEventListener("offline", update);
+    return () => {
+      window.removeEventListener("online", update);
+      window.removeEventListener("offline", update);
+    };
+  }, []);
 
   // 2026-05-27 UX update — first-time intro hint.
   // Shows the value-prop one-liner above question #1 once per device, then
@@ -233,20 +286,33 @@ export function VoteScreen() {
   //   closure 再評価タイミングが不定のリスクを許容できないため、error 直後
   //   500ms は onVote 呼び出し自体を早期 return で抑止する cooldown を追加。
   const errorCooldownRef = useRef(0);
+  // 2026-05-29 — remember the last attempted choice so the retry button can
+  // re-submit it without the user re-tapping the option.
+  const lastChoiceRef = useRef<VoteChoice | null>(null);
   const onVote = useCallback(
     async (choice: VoteChoice) => {
       if (Date.now() < errorCooldownRef.current) return;
-      setError(null);
+      setErrorKey(null);
+      lastChoiceRef.current = choice;
       try {
         await handleVote(choice);
       } catch (err) {
-        const msg = err instanceof Error ? err.message : String(err);
-        setError(msg.slice(0, 140));
+        // Show a localized, human-friendly message — never the raw error.
+        setErrorKey(classifyVoteError(err));
         errorCooldownRef.current = Date.now() + 500;
       }
     },
     [handleVote]
   );
+
+  // 2026-05-29 — explicit retry affordance. Bypasses the 500ms cooldown
+  // (the cooldown exists to debounce rapid double-taps, not deliberate retry).
+  const onRetry = useCallback(() => {
+    const choice = lastChoiceRef.current;
+    if (!choice) return;
+    errorCooldownRef.current = 0;
+    void onVote(choice);
+  }, [onVote]);
 
   if (isLoadingSession || !currentQuestion) {
     return (
@@ -322,6 +388,23 @@ export function VoteScreen() {
         className="h-px w-full mb-6"
         style={{ background: "var(--border)" }}
       />
+
+      {/* 2026-05-29 — offline indicator (案2 fullharness). role=status so it is
+          announced politely. Only rendered when the device reports offline. */}
+      {!isOnline && (
+        <div
+          role="status"
+          className="font-mono-feature text-[11px] mb-5 px-3 py-2 rounded-md border flex items-center gap-2"
+          style={{
+            color: "var(--destructive)",
+            borderColor: "var(--destructive)",
+            background: "color-mix(in oklch, var(--destructive) 8%, transparent)",
+          }}
+        >
+          <span style={{ color: "var(--destructive)" }}>{"!"}</span>
+          {t("app.offline")}
+        </div>
+      )}
 
       {/* ─── First-time intro hint (shown only on question #1 of first ever session) ─── */}
       {/* 2026-05-27 UX update — localStorage-gated. Auto-dismisses on subsequent
@@ -468,14 +551,35 @@ export function VoteScreen() {
           )}
         </AnimatePresence>
 
-        {error && (
-          <p
-            className="text-xs mt-3 font-mono-feature"
-            style={{ color: "var(--destructive)" }}
+        {/* 2026-05-29 — localized error + explicit retry (案2 fullharness).
+            role=alert + aria-live so screen readers announce it. */}
+        {errorKey && (
+          <div
+            role="alert"
+            aria-live="assertive"
+            className="mt-3 flex items-center justify-between gap-3"
           >
-            {"> error: "}
-            {error}
-          </p>
+            <span
+              className="text-xs font-mono-feature leading-snug"
+              style={{ color: "var(--destructive)" }}
+            >
+              {"> "}
+              {t(errorKey)}
+            </span>
+            <button
+              type="button"
+              onClick={onRetry}
+              className="font-mono-feature shrink-0 inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-[12px] font-bold tracking-wide active:scale-95 transition-transform"
+              style={{
+                borderWidth: 1,
+                borderStyle: "solid",
+                borderColor: "var(--destructive)",
+                color: "var(--destructive)",
+              }}
+            >
+              {t("error.retry")}
+            </button>
+          </div>
         )}
       </div>
     </div>

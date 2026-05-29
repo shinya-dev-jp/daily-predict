@@ -22,6 +22,11 @@
   "vote.verdictRare": "Rare take. Only {n}% of Orb-verified humans chose like you.",
   "vote.verdictOutlier": "Outlier. Only {n}% saw it your way.",
   "vote.firstTimeHint": "5 quick questions. See how Orb-verified humans split. ~90 sec.",
+  "error.network": "Connection issue. Check your network and retry.",
+  "error.auth": "Session issue. Reopen the app and try again.",
+  "error.verification": "Orb verification is needed to vote.",
+  "error.generic": "Something went wrong. Tap retry.",
+  "error.retry": "Retry",
 
   "summary.title": "5 questions done",
   "summary.subtitle": "Your pattern across 5 votes from Orb-verified humans",
