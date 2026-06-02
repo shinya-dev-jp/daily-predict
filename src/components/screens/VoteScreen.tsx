@@ -36,8 +36,6 @@ function pickVerdictKey(userPct: number): string {
   return "vote.verdictOutlier";
 }
 
-const FIRST_TIME_HINT_FLAG = "turingvote_seen_intro";
-
 /**
  * 2026-05-29 — Error UX (案2 fullharness).
  * Classify a caught vote error into a localized, human-friendly i18n key.
@@ -260,25 +258,6 @@ export function VoteScreen() {
     };
   }, []);
 
-  // 2026-05-27 UX update — first-time intro hint.
-  // Shows the value-prop one-liner above question #1 once per device, then
-  // never again. Uses localStorage; gracefully no-ops if storage is blocked
-  // (private browsing / Safari restricted) — flag read failure means we just
-  // show the hint, which is acceptable.
-  const [showIntroHint, setShowIntroHint] = useState(false);
-  useEffect(() => {
-    try {
-      const seen = window.localStorage.getItem(FIRST_TIME_HINT_FLAG);
-      if (!seen) {
-        setShowIntroHint(true);
-        window.localStorage.setItem(FIRST_TIME_HINT_FLAG, "1");
-      }
-    } catch {
-      // Storage unavailable — show the hint this session, no persistence.
-      setShowIntroHint(true);
-    }
-  }, []);
-
   // R4 C-R4-1 defensive guard: error path で setUserVote(null) 巻き戻し後に
   //   submittingRef が false になり、ユーザーが即別 option を連打すると二重
   //   POST の恐れを Round 4 Evaluator が指摘。実際には closure ガード + disabled
@@ -406,10 +385,11 @@ export function VoteScreen() {
         </div>
       )}
 
-      {/* ─── First-time intro hint (shown only on question #1 of first ever session) ─── */}
-      {/* 2026-05-27 UX update — localStorage-gated. Auto-dismisses on subsequent
-          sessions. Plain text only, no interaction needed. */}
-      {showIntroHint && questionNum === 1 && !userVote && (
+      {/* ─── Session intent cue (shown on Q1 before the first answer) ─── */}
+      {/* 2026-06-01 52-role fullharness: localStorage-gated one-time hints made
+          the app feel pointless after the first view. Show the payoff every
+          session, briefly: answer → see where your choice lands. */}
+      {questionNum === 1 && !userVote && (
         <motion.div
           initial={{ opacity: 0, y: -4 }}
           animate={{ opacity: 1, y: 0 }}
@@ -525,6 +505,11 @@ export function VoteScreen() {
                     style={{ color: "var(--foreground)" }}
                   >
                     {t(verdictKey).replace("{n}", String(userSidePct))}
+                  </div>
+                )}
+                {currentTally && (
+                  <div className="mb-0.5">
+                    {t("vote.meaningLine")}
                   </div>
                 )}
                 {currentTally

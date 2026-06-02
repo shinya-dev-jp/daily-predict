@@ -307,6 +307,12 @@ export function SummaryDialog() {
             {profileDesc}
           </p>
           <p
+            className="text-[12px] mt-2 leading-relaxed"
+            style={{ color: "var(--muted-foreground)" }}
+          >
+            {t("summary.meaningLine")}
+          </p>
+          <p
             className="text-[12px] mt-3 leading-relaxed font-mono-feature"
             style={{ color: "var(--terminal-dim)" }}
           >
