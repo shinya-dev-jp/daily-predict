@@ -14,6 +14,102 @@ const TV_APP_ID =
   "app_30c7b1a4127cca75b14c1abb6a024d46";
 export const APP_DEEP_LINK = `https://worldcoin.org/mini-app?app_id=${TV_APP_ID}`;
 
+const SHARE_TIMEOUT_MS = 8000;
+
+type ShareSurface = "minikit" | "web_share" | "clipboard";
+type ShareStatus =
+  | "start"
+  | "success"
+  | "error"
+  | "cancelled_or_error"
+  | "unsupported"
+  | "no_response";
+
+function shortErrorCode(error: unknown): string {
+  if (error && typeof error === "object") {
+    const maybe = error as { name?: unknown; message?: unknown };
+    if (typeof maybe.name === "string" && maybe.name) return maybe.name.slice(0, 48);
+    if (typeof maybe.message === "string" && maybe.message) {
+      return maybe.message.slice(0, 48);
+    }
+  }
+  if (typeof error === "string" && error) return error.slice(0, 48);
+  return "unknown";
+}
+
+function payloadValue(payload: unknown, key: string): unknown {
+  if (!payload || typeof payload !== "object") return undefined;
+  return (payload as Record<string, unknown>)[key];
+}
+
+function payloadStatus(payload: unknown): string | undefined {
+  const status = payloadValue(payload, "status");
+  return typeof status === "string" ? status : undefined;
+}
+
+function payloadErrorCode(payload: unknown): string | undefined {
+  const errorCode = payloadValue(payload, "error_code");
+  return typeof errorCode === "string" ? errorCode : undefined;
+}
+
+function payloadSharedFilesCount(payload: unknown): number | undefined {
+  const count = payloadValue(payload, "shared_files_count");
+  return typeof count === "number" && Number.isFinite(count) ? count : undefined;
+}
+
+function trackShareAttempt(surface: ShareSurface, text: string): void {
+  track("share_attempt", {
+    metadata: {
+      surface,
+      status: "start",
+      has_url: true,
+      has_text: text.trim().length > 0,
+    },
+  });
+}
+
+function trackShareResult(
+  surface: ShareSurface,
+  status: ShareStatus,
+  extra: Record<string, string | number | boolean | null | undefined> = {},
+): void {
+  track("share_result", {
+    metadata: {
+      surface,
+      status,
+      ...extra,
+    },
+  });
+}
+
+function trackShareError(surface: ShareSurface, error: unknown): void {
+  track("share_error", {
+    metadata: {
+      surface,
+      status: "error",
+      error_code: shortErrorCode(error),
+    },
+  });
+}
+
+async function withTimeout<T>(
+  promise: Promise<T>,
+  ms: number,
+): Promise<T | "timeout"> {
+  return new Promise((resolve, reject) => {
+    const timeout = window.setTimeout(() => resolve("timeout"), ms);
+    promise
+      .then((value) => {
+        window.clearTimeout(timeout);
+        resolve(value);
+      })
+      .catch((error) => {
+        window.clearTimeout(timeout);
+        reject(error);
+      });
+  });
+}
+
 /**
  * Share text via MiniKit (in World App) → Web Share API → clipboard.
  * Prefers MiniKit's native share inside World App for higher conversion.
@@ -22,40 +118,79 @@ export async function shareText(text: string): Promise<boolean> {
   // 1. Prefer MiniKit share inside World App (native bottom sheet)
   try {
     if (MiniKit.isInstalled()) {
-      const result = await MiniKit.commandsAsync.share({
-        title: "TuringVote",
-        text,
-        url: APP_DEEP_LINK,
-      });
-      if (result?.finalPayload) {
-        track("share_success", { metadata: { surface: "minikit" } });
-        return true;
+      trackShareAttempt("minikit", text);
+      const result = await withTimeout(
+        MiniKit.commandsAsync.share({
+          title: "TuringVote",
+          text,
+          url: APP_DEEP_LINK,
+        }),
+        SHARE_TIMEOUT_MS,
+      );
+      if (result === "timeout") {
+        trackShareResult("minikit", "no_response", {
+          has_final_payload: false,
+        });
+      } else {
+        const finalPayload = result?.finalPayload;
+        const status = payloadStatus(finalPayload);
+        const errorCode = payloadErrorCode(finalPayload);
+        const sharedFilesCount = payloadSharedFilesCount(finalPayload);
+        trackShareResult(
+          "minikit",
+          status === "success" ? "success" : status === "error" ? "error" : "no_response",
+          {
+            has_final_payload: Boolean(finalPayload),
+            error_code: errorCode,
+            shared_files_count: sharedFilesCount,
+          },
+        );
+        if (status === "success") {
+          track("share_success", { metadata: { surface: "minikit" } });
+          return true;
+        }
+        if (errorCode === "user_rejected") return false;
       }
+    } else {
+      trackShareResult("minikit", "unsupported", { has_final_payload: false });
     }
-  } catch {
+  } catch (err) {
+    trackShareError("minikit", err);
     // Fall through to web share
   }
 
   // 2. Web Share API (mobile browsers outside World App)
   if (typeof navigator !== "undefined" && navigator.share) {
+    trackShareAttempt("web_share", text);
     try {
       await navigator.share({ text, title: "TuringVote", url: APP_DEEP_LINK });
+      trackShareResult("web_share", "success");
       track("share_success", { metadata: { surface: "web_share" } });
       return true;
-    } catch {
-      // User cancelled or not supported
+    } catch (err) {
+      trackShareResult("web_share", "cancelled_or_error", {
+        error_code: shortErrorCode(err),
+      });
+      if (shortErrorCode(err) === "AbortError") return false;
+      // Fall through to clipboard for non-cancel failures.
     }
+  } else {
+    trackShareResult("web_share", "unsupported");
   }
 
   // 3. Clipboard fallback (desktop / unsupported browsers)
   if (typeof navigator !== "undefined" && navigator.clipboard) {
+    trackShareAttempt("clipboard", text);
     try {
       await navigator.clipboard.writeText(`${text}\n\n${APP_DEEP_LINK}`);
+      trackShareResult("clipboard", "success");
       track("share_success", { metadata: { surface: "clipboard" } });
       return true;
-    } catch {
-      // Clipboard not available
+    } catch (err) {
+      trackShareError("clipboard", err);
     }
+  } else {
+    trackShareResult("clipboard", "unsupported");
   }
 
   return false;

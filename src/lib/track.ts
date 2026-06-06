@@ -32,6 +32,9 @@ const VERCEL_MIRROR_EVENTS = new Set<EventName>([
   "fifth_vote",
   "summary_view",
   "share_tap",
+  "share_attempt",
+  "share_result",
+  "share_error",
   "share_success",
   "return_visit",
   "error",
@@ -66,6 +69,9 @@ export type EventName =
   | "fifth_vote"
   | "summary_view"
   | "share_tap"
+  | "share_attempt"
+  | "share_result"
+  | "share_error"
   | "share_success"
   | "return_visit"
   | "verify_started"
