@@ -25,6 +25,8 @@ const ALLOWED_EVENTS = new Set([
   "share_result",
   "share_error",
   "share_success",
+  "world_app_open_tap",
+  "preview_tap",
   "return_visit",
   "vote",
   "verify_started",

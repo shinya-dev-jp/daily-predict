@@ -36,6 +36,8 @@ const VERCEL_MIRROR_EVENTS = new Set<EventName>([
   "share_result",
   "share_error",
   "share_success",
+  "world_app_open_tap",
+  "preview_tap",
   "return_visit",
   "error",
 ]);
@@ -73,6 +75,8 @@ export type EventName =
   | "share_result"
   | "share_error"
   | "share_success"
+  | "world_app_open_tap"
+  | "preview_tap"
   | "return_visit"
   | "verify_started"
   | "verify_completed"

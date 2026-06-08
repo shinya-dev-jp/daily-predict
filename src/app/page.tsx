@@ -12,6 +12,7 @@ import { I18nProvider, useI18n, type Locale } from "@/i18n";
 import { MiniKit } from "@worldcoin/minikit-js";
 import type { UserProfile } from "@/lib/types";
 import { APP_DEEP_LINK } from "@/lib/constants";
+import { track } from "@/lib/track";
 
 const LANGUAGES: { code: Locale; label: string; shortLabel: string }[] = [
   { code: "en", label: "English", shortLabel: "EN" },
@@ -216,6 +217,24 @@ function WalletAuthScreen({
     t("verify.feature3"),
   ];
 
+  const trackWorldAppOpen = useCallback(() => {
+    track("world_app_open_tap", {
+      metadata: {
+        surface: "wallet_auth",
+        destination: "world_app_deep_link",
+      },
+    });
+  }, []);
+
+  const trackPreviewOpen = useCallback(() => {
+    track("preview_tap", {
+      metadata: {
+        surface: "wallet_auth",
+        destination: "preview",
+      },
+    });
+  }, []);
+
   return (
     <div
       className="mx-auto max-w-md min-h-dvh flex flex-col relative"
@@ -325,6 +344,7 @@ function WalletAuthScreen({
         <div className="grid grid-cols-2 gap-2">
           <a
             href={APP_DEEP_LINK}
+            onClick={trackWorldAppOpen}
             className="font-mono-feature min-h-10 rounded-md border px-2 py-2 text-[11px] leading-tight text-center font-bold uppercase tracking-widest flex items-center justify-center gap-1.5 transition active:scale-[0.98]"
             style={{
               borderColor: "var(--border)",
@@ -337,6 +357,7 @@ function WalletAuthScreen({
           </a>
           <Link
             href="/?preview=1"
+            onClick={trackPreviewOpen}
             className="font-mono-feature min-h-10 rounded-md border px-2 py-2 text-[11px] leading-tight text-center font-bold uppercase tracking-widest flex items-center justify-center gap-1.5 transition active:scale-[0.98]"
             style={{
               borderColor: "var(--border)",
