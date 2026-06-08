@@ -12,9 +12,31 @@ const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono" });
 
 const BASE_URL = "https://turingvote.vercel.app";
 
-const TITLE = "TuringVote — Verified-human only 2-choice polls";
+const TITLE = "TuringVote — 5-question mirror for verified humans";
 const DESCRIPTION =
-  "Vote on neutral 2-choice questions. Only Verified Humans via World ID can participate. See how the verified crowd answers.";
+  "Answer 5 quick this-or-that questions and see whether your choices land with the majority or minority among verified humans in World App.";
+
+const STRUCTURED_DATA = {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  name: "TuringVote",
+  url: BASE_URL,
+  applicationCategory: "LifestyleApplication",
+  operatingSystem: "World App",
+  description: DESCRIPTION,
+  offers: {
+    "@type": "Offer",
+    price: "0",
+    priceCurrency: "USD",
+  },
+  featureList: [
+    "5 quick this-or-that questions",
+    "majority or minority mirror",
+    "verified-human preference splits",
+    "World ID / World App sign-in",
+    "no rewards, streaks, betting, or leaderboard",
+  ],
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
@@ -23,8 +45,15 @@ export const metadata: Metadata = {
     template: "%s | TuringVote",
   },
   description: DESCRIPTION,
+  alternates: {
+    canonical: BASE_URL,
+  },
   keywords: [
     "TuringVote",
+    "5-question mirror",
+    "this or that questions",
+    "would you rather",
+    "majority or minority",
     "World ID",
     "World App",
     "Mini App",
@@ -52,7 +81,7 @@ export const metadata: Metadata = {
         url: "/og.png",
         width: 1200,
         height: 630,
-        alt: "TuringVote — 90-second preference check for Orb-verified humans. A or B. No points, no streaks.",
+        alt: "TuringVote — answer 5 this-or-that questions and see your majority or minority mirror among verified humans.",
       },
     ],
   },
@@ -93,6 +122,10 @@ export default function RootLayout({
         {/* Preconnect to Supabase to shave ~100-300ms off the first /api call */}
         <link rel="preconnect" href="https://wgszbxgsxekwdmssnvvd.supabase.co" />
         <link rel="dns-prefetch" href="https://wgszbxgsxekwdmssnvvd.supabase.co" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(STRUCTURED_DATA) }}
+        />
       </head>
       <body>
         <MiniKitWrapper>

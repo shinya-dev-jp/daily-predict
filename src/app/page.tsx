@@ -11,6 +11,7 @@ import { AppProvider, useApp } from "@/components/providers/AppProvider";
 import { I18nProvider, useI18n, type Locale } from "@/i18n";
 import { MiniKit } from "@worldcoin/minikit-js";
 import type { UserProfile } from "@/lib/types";
+import { APP_DEEP_LINK } from "@/lib/constants";
 
 const LANGUAGES: { code: Locale; label: string; shortLabel: string }[] = [
   { code: "en", label: "English", shortLabel: "EN" },
@@ -320,6 +321,33 @@ function WalletAuthScreen({
             <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
           )}
         </button>
+
+        <div className="grid grid-cols-2 gap-2">
+          <a
+            href={APP_DEEP_LINK}
+            className="font-mono-feature min-h-10 rounded-md border px-2 py-2 text-[11px] leading-tight text-center font-bold uppercase tracking-widest flex items-center justify-center gap-1.5 transition active:scale-[0.98]"
+            style={{
+              borderColor: "var(--border)",
+              color: "var(--foreground)",
+              backgroundColor: "color-mix(in oklch, var(--card) 88%, transparent)",
+            }}
+          >
+            <span>{t("verify.openWorldApp")}</span>
+            <ChevronRight className="h-3.5 w-3.5" aria-hidden />
+          </a>
+          <Link
+            href="/?preview=1"
+            className="font-mono-feature min-h-10 rounded-md border px-2 py-2 text-[11px] leading-tight text-center font-bold uppercase tracking-widest flex items-center justify-center gap-1.5 transition active:scale-[0.98]"
+            style={{
+              borderColor: "var(--border)",
+              color: "var(--muted-foreground)",
+              backgroundColor: "color-mix(in oklch, var(--card) 80%, transparent)",
+            }}
+          >
+            <span>{t("verify.preview")}</span>
+            <ChevronRight className="h-3.5 w-3.5" aria-hidden />
+          </Link>
+        </div>
 
         {error && (
           <p

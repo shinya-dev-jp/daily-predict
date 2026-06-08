@@ -148,8 +148,8 @@ export function SummaryDialog() {
       profile === "majority" ? "🟦" : profile === "minority" ? "🟧" : "⚪";
     const text =
       locale === "ja"
-        ? `🧠 ${profileEmoji} TuringVote で私は${profileLabel}でした。あなたはどう？ →`
-        : `🧠 ${profileEmoji} I'm ${profileLabel} on TuringVote. Compare your answer →`;
+        ? `🧠 ${profileEmoji} TuringVoteの5問ミラーで、私は${profileLabel}でした。\n\n5つの二択で、多数派か少数派か見てみて →`
+        : `🧠 ${profileEmoji} My 5-question TuringVote mirror: ${profileLabel}.\n\nTake 5 this-or-that questions and see if you land majority or minority →`;
     await shareText(text);
   };
 
@@ -451,6 +451,12 @@ export function SummaryDialog() {
             <RotateCcw className="h-3.5 w-3.5 mr-2" />
             {t("summary.playAgain")}
           </Button>
+          <p
+            className="text-[12px] leading-relaxed text-center px-1"
+            style={{ color: "var(--muted-foreground)" }}
+          >
+            {t("summary.sharePrompt")}
+          </p>
           <Button
             onClick={handleShare}
             variant="outline"

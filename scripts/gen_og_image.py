@@ -61,19 +61,19 @@ def main() -> None:
 
     # Value prop line 1 (white)
     f_sub = font(SANS_BOLD, 50)
-    d.text((MARGIN, 270), "90-second preference check", font=f_sub, fill=FG)
+    d.text((MARGIN, 270), "5-question this-or-that mirror", font=f_sub, fill=FG)
 
     # Value prop line 2 (green accent) — verifiable, no numbers
     f_sub2 = font(SANS_BOLD, 50)
-    d.text((MARGIN, 332), "for Orb-verified humans", font=f_sub2, fill=GREEN)
+    d.text((MARGIN, 332), "majority or minority?", font=f_sub2, fill=GREEN)
 
     # Supporting line (off-white) — what you do
     f_body = font(SANS, 34)
-    d.text((MARGIN, 420), "A or B. See how verified humans split.", font=f_body, fill=FG)
+    d.text((MARGIN, 420), "Compare your choices with verified humans.", font=f_body, fill=FG)
 
     # Differentiator (dim) — honest + Worldcoin-aligned, no fake engagement
     f_diff = font(SANS, 30)
-    d.text((MARGIN, 470), "No points. No streaks. Just real opinions.", font=f_diff, fill=DIM)
+    d.text((MARGIN, 470), "No rewards. No streaks. No bots.", font=f_diff, fill=DIM)
 
     # A / B chips (bottom-left) — green A, magenta B, mirrors the vote UI
     f_chip = font(MONO, 30)

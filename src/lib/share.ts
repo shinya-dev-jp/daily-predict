@@ -1,5 +1,6 @@
 import { MiniKit, Permission } from "@worldcoin/minikit-js";
 import { track } from "./track";
+import { APP_DEEP_LINK } from "./constants";
 
 /**
  * World App deep link for TuringVote.
@@ -9,11 +10,6 @@ import { track } from "./track";
  * 2026-04-19 — share link previously pointed to Daily Predict's app_id, which
  * caused JP region block on the share landing page).
  */
-const TV_APP_ID =
-  process.env.NEXT_PUBLIC_WLD_APP_ID ??
-  "app_30c7b1a4127cca75b14c1abb6a024d46";
-export const APP_DEEP_LINK = `https://worldcoin.org/mini-app?app_id=${TV_APP_ID}`;
-
 const SHARE_TIMEOUT_MS = 8000;
 
 type ShareSurface = "minikit" | "web_share" | "clipboard";
@@ -211,8 +207,8 @@ export function buildResultShareText(
   correctPercent: number
 ): string {
   return isCorrect
-    ? `\uD83E\uDDE0 I was in the ${correctPercent}% of Orb-verified humans who got this right on TuringVote.\n\n"${questionEn}"\n\nCompare your answer \u2192`
-    : `\uD83E\uDDE0 ${correctPercent}% of Orb-verified humans got this right on TuringVote. I wasn't.\n\n"${questionEn}"\n\nWhere do you land? \u2192`;
+    ? `\uD83E\uDDE0 I landed with the ${correctPercent}% of verified humans on TuringVote.\n\n"${questionEn}"\n\nTry the 5-question mirror \u2192`
+    : `\uD83E\uDDE0 Only ${correctPercent}% of verified humans chose like this on TuringVote.\n\n"${questionEn}"\n\nMajority or minority? Try the 5-question mirror \u2192`;
 }
 
 /**
@@ -225,7 +221,7 @@ export function buildPredictionShareText(
   chosenLabel: string,
   agreePercent: number
 ): string {
-  return `\uD83E\uDDE0 I voted "${chosenLabel}" on TuringVote. ${agreePercent}% of Orb-verified humans agree.\n\n"${questionEn}"\n\nWhere do you land? \u2192`;
+  return `\uD83E\uDDE0 I chose "${chosenLabel}" on TuringVote. ${agreePercent}% of verified humans chose the same side.\n\n"${questionEn}"\n\nWhere do you land in 5 quick choices? \u2192`;
 }
 
 /**
