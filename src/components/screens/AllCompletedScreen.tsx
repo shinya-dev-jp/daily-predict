@@ -25,9 +25,9 @@ export function AllCompletedScreen() {
   const onShare = async () => {
     const text =
       locale === "ja"
-        ? `🧠 TuringVoteで全${totalAnswered}問の2択投票に答えました。\n\n認証済み人間だけの投票プラットフォーム。\n\n🎯 試してみる:`
-        : `🧠 I've answered all ${totalAnswered} TuringVote polls.\n\nVerified-humans-only 2-choice questions.\n\n🎯 Try it:`;
-    track("share_tap", { metadata: { surface: "all_completed" } });
+        ? `🧠 TuringVoteで全${totalAnswered}問に回答しました。\n\nまずは5つの二択で、自分が多数派か少数派か見てみて →`
+        : `🧠 I've answered all ${totalAnswered} TuringVote questions.\n\nStart with 5 this-or-that choices and see if you land majority or minority →`;
+    track("share_tap", { metadata: { surface: "all_completed", total_answered: totalAnswered } });
     await shareText(text);
   };
 
@@ -100,8 +100,11 @@ export function AllCompletedScreen() {
       {/* Share */}
       <Button
         onClick={onShare}
-        className="w-full max-w-[260px]"
-        variant="outline"
+        className="w-full max-w-[260px] h-11 text-sm font-bold font-mono-feature tracking-wide rounded-md"
+        style={{
+          backgroundColor: "var(--primary)",
+          color: "var(--primary-foreground)",
+        }}
       >
         <Share2 className="h-4 w-4 mr-2" />
         {t("summary.share")}

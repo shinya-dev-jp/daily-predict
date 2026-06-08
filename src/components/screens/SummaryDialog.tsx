@@ -440,17 +440,6 @@ export function SummaryDialog() {
 
         {/* Actions */}
         <div className="flex flex-col gap-2 px-5 pt-4 pb-5">
-          <Button
-            onClick={() => startNewSession()}
-            className="w-full h-11 text-sm font-bold font-mono-feature tracking-wide rounded-md"
-            style={{
-              backgroundColor: "var(--primary)",
-              color: "var(--primary-foreground)",
-            }}
-          >
-            <RotateCcw className="h-3.5 w-3.5 mr-2" />
-            {t("summary.playAgain")}
-          </Button>
           <p
             className="text-[12px] leading-relaxed text-center px-1"
             style={{ color: "var(--muted-foreground)" }}
@@ -459,12 +448,23 @@ export function SummaryDialog() {
           </p>
           <Button
             onClick={handleShare}
+            className="w-full h-11 text-sm font-bold font-mono-feature tracking-wide rounded-md"
+            style={{
+              backgroundColor: "var(--primary)",
+              color: "var(--primary-foreground)",
+            }}
+          >
+            <Share2 className="h-3.5 w-3.5 mr-2" />
+            {t("summary.share")}
+          </Button>
+          <Button
+            onClick={() => startNewSession()}
             variant="outline"
             className="w-full h-11 text-sm font-medium rounded-md"
             style={{ borderColor: "var(--border)" }}
           >
-            <Share2 className="h-3.5 w-3.5 mr-2" />
-            {t("summary.share")}
+            <RotateCcw className="h-3.5 w-3.5 mr-2" />
+            {t("summary.playAgain")}
           </Button>
           {/*
             2026-04-27 reject fix:
