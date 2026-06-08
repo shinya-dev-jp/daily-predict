@@ -121,6 +121,10 @@ export async function POST(req: NextRequest) {
   const metadata = cleanMetadata(input.metadata);
   const userAddress = analyticsSubject(req);
 
+  if (process.env.NODE_ENV === "development" && process.env.ALLOW_LOCAL_EVENT_INGEST !== "1") {
+    return empty(204);
+  }
+
   try {
     const { error } = await getSupabaseAdmin()
       .from("app_events")
